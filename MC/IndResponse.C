@@ -43,18 +43,23 @@ double ptbins[] ={30.,40.,50.,60.,70.,80.,90.,
 		  400.,410.,420.,430.,440.,450.,460.,470.,480.,490.,
 		  500.};
 */
-//double ptbins[]={80.,100, 110, 120, 130, 140, 150, 160, 170, 180, 200, 240, 300};
-//double ptbins[] ={80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 200, 220, 240, 260, 300, 340, 400};
-//double ptbins[] ={50.,60.,70.,80.,90.,100.,110.,120.,140.,160.,180.,200.,220.,240.,260.,280.,300.,325.,350.,375.,400.,425.,450.,500.};
+//double ptbins[] ={50.,60.,70.,80.,90.,100.,110.,120.,130.,140.,150.,160.,170.,180.,190.,200.,220.,240.,260.,280.,300.,325.,350.,375.,400.,425.,450.,500.};
+//double ptbins[] ={55.,75.,100.,125.,150.,175.,200.,225.,250.,275.,300.,350.,400.,450.,500.};
+//double ptbins[] ={80.,100, 110, 120, 130, 140, 150, 160, 170, 180, 200, 240, 300};
 
 double ptbins[] ={80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400};
 const int bins = sizeof(ptbins)/sizeof(double) - 1;
+
+//! data pt binning
+double ptbins_data[] ={100, 110, 120, 130, 140, 150, 160, 170, 180, 200, 240, 300};
+const int dbins = sizeof(ptbins_data)/sizeof(double) - 1;
+
 
 //! constants
 const int iYear=2012;
 const double pi=acos(-1.);
 const double pi2=2*pi -1;
-const int ncen=7;
+const int ncen=7; //! upto 5 for PbPb and 6th is pp
 const int ketar=4;
 const int maxe=5;
 const int maxph=5;
@@ -66,7 +71,8 @@ const double kVzcut=15.;
 
 const int rbins=50;
 double rbinl=0.0;
-double rbinh=5.00;
+double rbinh=5.0;
+
 /* Full list 
 const int knj=25;
 const char *calgo[knj]= {
@@ -90,7 +96,16 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
   //! Load the hiforest input root file
   HiForest *c = 0;
   if(strcmp("pp",ksp)==0)c = new HiForest(Form("/net/hisrv0001/home/icali/hadoop/Pythia/Z2/ppDijet_merged/pp276Dijet%0.0f_merged.root",kPt),"pp2012",1,1);
-  else  c = new HiForest(Form("/net/hisrv0001/home/icali/hadoop/Hydjet1.8/Z2/Dijet_merged/Dijet%0.0f_merged.root",kPt),"pbpb2012",0,1);
+  else  {
+    if(kPt==30)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia30_HydjetDrum_mix01_HiForest2_v19.root","pbpb2012",0,1);
+    else if(kPt==50)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia50_HydjetDrum_mix01_HiForest2_v19.root","pbpb2012",0,1);
+    else if(kPt==80)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia80_HydjetDrum_mix01_HiForest2_v20.root","pbpb2012",0,1);
+    else if(kPt==120)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia120_HydjetDrum_mix01_HiForest2_v21_ivan.root","pbpb2012",0,1);
+    else if(kPt==170)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia170_HydjetDrum_mix01_HiForest2_v19.root","pbpb2012",0,1);
+    else if(kPt==200)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia200_HydjetDrum_mix01_HiForest2_v21_ivan.root","pbpb2012",0,1);
+    else if(kPt==250)c = new HiForest("/d102/yjlee/hiForest2MC/Pythia250_HydjetDrum_mix01_HiForest2_v21_ivan.root","pbpb2012",0,1);
+    //c = new HiForest(Form("/net/hisrv0001/home/icali/hadoop/Hydjet1.8/Z2/Dijet_merged/Dijet%0.0f_merged.root",kPt),"pbpb2012",0,1);
+  }
 
 
   double xsection=0;
@@ -144,6 +159,7 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
   }
   xsection = xup-xsub;
 
+
   std::cout<<std::endl;
   std::cout<<std::endl;
 
@@ -173,8 +189,8 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 
   //! jet Tree algorithms
   const char *jtlist[]={"nref","pthat","rawpt","jtpt","jteta","jtphi","jtpu","refpt","refeta","refphi","refdrjt","refparton_flavor",
-			"ngen","gensubid","genmatchindex"};
-
+			"ngen","gensubid","genmatchindex"
+  };
   const int kjtbr = sizeof(jtlist)/sizeof(const char *);
   c->SelectBranches("JetTree",jtlist,kjtbr);
 
@@ -194,7 +210,6 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 
   //! Open a output file for histos
   TFile *fout = new TFile(Form("Output/%s/Response_newHiForest_DJ_%0.0fGeV_%s_%d.root",ksp,kPt,ksp,iYear),"RECREATE");
-  //TFile *fout = new TFile(Form("Output/%s/refparton/Response_newHiForest_DJ_%0.0fGeV_%s_%d.root",ksp,kPt,ksp,iYear),"RECREATE");
   //TFile *fout = new TFile(Form("Output/%s/novtxcut/Response_newHiForest_DJ_%0.0fGeV_%s_%d.root",ksp,kPt,ksp,iYear),"RECREATE");
   //TFile *fout = new TFile(Form("test_newHiForest_DJ_%0.0fGeV_%s_%d.root",kPt,ksp,iYear),"RECREATE");
 
@@ -247,7 +262,7 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 
   TH2F *hgenjrecoj[knj][ncen];
   TH2F *hgenjrecoj_pflavor[knj][ncen];
-  
+
   TH2F *hFracjets[knj][ncen];
   TH2F *hAvjets[knj][ncen];
   TH2F *hMeanPtjets[knj][ncen];
@@ -320,7 +335,6 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
       hratiocorrrawpt[nj][icen]= new TH2F(Form("hratiocorrrawpt%d_%d",nj,icen),Form("Correc. jet / Raw jet jet p_{T} distribution jet centb %d %s",icen,cjets[nj]),
                                           bins,ptbins,rbins,rbinl,rbinh);
 
-
       hratiocorrrefpt_lead[nj][icen]= new TH2F(Form("hratiocorrrefpt_lead%d_%d",nj,icen),Form("Leading jet Reco jet / Gen jet p_{T} (corr.) distribution jet centb %d %s",icen,cjets[nj]),
                                                bins,ptbins,rbins,rbinl,rbinh);
       hratiocorrrefpt_slead[nj][icen]= new TH2F(Form("hratiocorrrefpt_slead%d_%d",nj,icen),Form("sub-Leading jet Reco jet / Gen jet p_{T} (corr.) distribution jet centb %d %s",icen,cjets[nj]),
@@ -328,11 +342,12 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
       hratiocorrrefpt_remain[nj][icen]= new TH2F(Form("hratiocorrrefpt_remain%d_%d",nj,icen),Form("Remaing jet Reco jet / Gen jet p_{T} (corr.) distribution jet centb %d %s",icen,cjets[nj]),
                                                  bins,ptbins,rbins,rbinl,rbinh);
       hratiocorrrefpt_pthat[nj][icen]= new TH2F(Form("hratiocorrrefpt_pthat%d_%d",nj,icen),Form("pT hat jet Reco jet / Gen jet p_{T} (corr.) distribution jet centb %d %s",icen,cjets[nj]),
-						bins,ptbins,rbins,rbinl,rbinh);
-
+                                                bins,ptbins,rbins,rbinl,rbinh);
       hratiocorrrefpt_genm[nj][icen]= new TH2F(Form("hratiocorrrefpt_genm%d_%d",nj,icen),Form("Gen matched jet Reco jet / Gen jet p_{T} (corr.) distribution jet centb %d %s",icen,cjets[nj]),
                                                bins,ptbins,rbins,rbinl,rbinh);
-      
+
+
+
       for(int ie=0;ie<2;ie++){
         hratiorawrefpt_eta[nj][icen][ie]= new TH2F(Form("hratiorawrefpt_eta%d_%d_%d",nj,icen,ie),
 						   Form("Raw jet / Gen jet p_{T} (raw) distribution jet centb %d %s etabin%d",icen,cjets[nj],ie),
@@ -342,10 +357,10 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 						    bins,ptbins,rbins,rbinl,rbinh);
       }
 
-      hjetptpu[nj][icen] = new TH2F(Form("hjetptpu%d_%d",nj,icen),Form("jet(pt:pu) distribution jet centb %d %s",icen,cjets[nj]),bins,ptbins,100,0,300);
+      hjetptpu[nj][icen] = new TH2F(Form("hjetptpu%d_%d",nj,icen),Form("jet(pt:pu) distribution jet centb %d %s",icen,cjets[nj]),dbins,ptbins_data,100,0,300);
       for(int ie=0;ie<ketar;ie++){
         hjetptpu_etab[nj][icen][ie] = new TH2F(Form("hjetptpu_etab%d_%d_%d",nj,icen,ie),Form("jet(pt:pu) distribution jet %s etabin %d cen %d",cjets[nj],icen,ie),
-					       bins,ptbins,100,0,300);
+					       dbins,ptbins_data,100,0,300);
       }
       
       for(int m=0;m<maxe;m++){
@@ -362,11 +377,11 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
       hgenjrecoj_pflavor[nj][icen] =new TH2F(Form("hgenjrecoj_pflavor%d_%d",nj,icen),Form("gen jet : reco jet with parton flavor %s cent %d",cjets[nj],icen),500,0.,1000.,500,0.,1000.);
 
       //! efficency histograms
-      hPtAll [nj][icen] = new TH1F(Form("hPtAll%d_%d",nj,icen),Form("Denominator pT for algorithm %s cent %d",cjets[nj],icen),40,30.,430.);
+      hPtAll [nj][icen] = new TH1F(Form("hPtAll%d_%d",nj,icen),Form("Denominator pT for algorithm %s cent %d",cjets[nj],icen),40,30,430);
       hEtaAll[nj][icen] = new TH1F(Form("hEtaAll%d_%d",nj,icen),Form("Denominator eta  for algorithm %s cent %d",cjets[nj],icen),20,-2.0,2.0);
       hPhiAll[nj][icen] = new TH1F(Form("hPhiAll%d_%d",nj,icen),Form("Denominator  phi  for algorithm %s cent %d",cjets[nj],icen),20,-pi,pi);
       
-      hPtSel [nj][icen] = new TH1F(Form("hPtSel%d_%d",nj,icen),Form("Numerator pT for algorithm %s cent %d",cjets[nj],icen),40,30.,430.);
+      hPtSel [nj][icen] = new TH1F(Form("hPtSel%d_%d",nj,icen),Form("Numerator pT for algorithm %s cent %d",cjets[nj],icen),40,30,430);
       hEtaSel[nj][icen] = new TH1F(Form("hEtaSel%d_%d",nj,icen),Form("Numerator eta  for algorithm %s cent %d",cjets[nj],icen),20,-2.0,2.0);
       hPhiSel[nj][icen] = new TH1F(Form("hPhiSel%d_%d",nj,icen),Form("Numerator  phi  for algorithm %s cent %d",cjets[nj],icen),20,-pi,pi);
 
@@ -385,7 +400,15 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 
 
   //! Centrality reweighting function
-  TF1* fcen = new TF1("fcen","exp(-1.0*pow(x+1.11957e+01,2)/pow(1.34120e+01,2)/2)",0,40);
+  //TF1* fcen = new TF1("fcen","exp(-1.0*pow(x+1.11957e+01,2)/pow(1.34120e+01,2)/2)",0,40);
+  TF1 *fcen = new TF1("fcen","[0]*exp([1]+[2]*x+[3]*x*x+[4]*x*x*x)",0,40);
+  fcen->SetParameters(2.10653e-02,5.61607,-1.41493e-01,1.00586e-03,-1.32625e-04);
+
+  //! vertex z reweighting
+  TF1 *fVz = new TF1("fVz","[0]+[1]*x+[2]*x*x+[3]*x*x*x+[4]*x*x*x*x");
+  if(strcmp(ksp,"pp")==0) fVz->SetParameters(8.41684e-01,-2.58609e-02,4.86550e-03,-3.10581e-04,2.07918e-05);
+  else  fVz->SetParameters(7.62788e-01,-1.13228e-02,5.85199e-03,-3.04550e-04,4.43440e-05);
+
 
   Long64_t nb = 0;
   Long64_t nentries = c->GetEntries();
@@ -417,6 +440,7 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
     if(hiBin<0 || hiBin>39)continue;
     int centb=-1;
     double wcen=1;
+    double wvz=fVz->Eval(vz);
     if(strcmp(ksp,"pbpb")==0){
       centb=GetCentBin(hiBin);
       wcen = fcen->Eval(hiBin);
@@ -433,23 +457,13 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
     if(centb==-1 || centb==ncen)continue;
 
 
-    //! Methods to get the jet objects of a given algorithm
-    /* Get the Jet object of a given type of algorithm according to the number from Full list
-       iJet = c->GetJet(15);
-       std::cout<<"\t GetJet()       : "<<c->GetCjets[Nj](15)<<"\t # of Jets  : "<<iJet->nref<<std::endl;
-    */
-    /* Get the Jet object of a given type of algorithm according to the NAME from Full list
-    iJet = c->GetJetByAlgo("akPu3PF");
-    std::cout<<"\t GetJetByAlgo() : "<<c->GetCjets[Nj](15)<<"\t # of Jets  : "<<iJet->nref<<std::endl;
-    */
-
     int istat=0;
     for(int nj=0;nj<knj;nj++){ //! loop over different jet algorithms
-      //for(int nj=15;nj<16;nj++){ //! loop over different jet algorithms
+      
       //! Get the jet object
       //iJet = c->GetJet(nj);
       iJet = c->GetJetByAlgo(cjets[nj]);
-
+      
       //! xsec-weight
       double pthat = iJet->pthat;
       if(pthat > maxpthat)continue;
@@ -458,18 +472,20 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
       //std::cout<<"\t Jet Algorithm : "<<c->GetCjets[Nj](nj)<<"\t # of Jets  : "<<iJet->nref<<"\t pthat : "<<pthat<<std::endl;
       if(nj==0)hTotEve->Fill(1); //! akPu3PF      
 
+      float njets=0.;
+      float meanpt=0.;
 
       int *ljet = new int[2];
       FindLeadSubLeadJets(iJet,ljet);
       if(ljet[0]>=0){
-        hratiocorrrefpt_lead[nj][centb]->Fill(iJet->refpt[ljet[0]],iJet->jtpt[ljet[0]]/iJet->refpt[ljet[0]],wxs*wcen);
+	hratiocorrrefpt_lead[nj][centb]->Fill(iJet->refpt[ljet[0]],iJet->jtpt[ljet[0]]/iJet->refpt[ljet[0]],wxs*wcen*wvz);
       }
       if(ljet[1]>=0){
-	hratiocorrrefpt_slead[nj][centb]->Fill(iJet->refpt[ljet[1]],iJet->jtpt[ljet[1]]/iJet->refpt[ljet[1]],wxs*wcen);
+	hratiocorrrefpt_slead[nj][centb]->Fill(iJet->refpt[ljet[1]],iJet->jtpt[ljet[1]]/iJet->refpt[ljet[1]],wxs*wcen*wvz);
       }
 
       if(nj>3){
-	//! for gen matched jets
+	//! Gen matched jets
 	for(int igen=0; igen<iJet->ngen; igen++){
 	  if( iJet->gensubid[igen] != 0) continue;
 	  int gj = iJet->genmatchindex[igen];
@@ -480,14 +496,11 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 	  float delr    = iJet->refdrjt[gj];
 	  
 	  if(recopt<kptrecocut || refpt<kptgencut || refpt==0 || fabs(recoeta)>ketacut || fabs(delr)>kdRcut)continue;
-	  hratiocorrrefpt_genm[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen);
+	  hratiocorrrefpt_genm[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
 	}
       }
 
-      float njets=0.;
-      float meanpt=0.;
 
-      //int istat=0;
       for(int ij=0; ij<iJet->nref; ij++){
 	//if(!selecJet(iJet,ij))continue;
 
@@ -500,54 +513,46 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
         float recophi = iJet->jtphi[ij];
 	int refparton_flavor = iJet->refparton_flavor[ij];
 
-	//! Reference parton flavor
-	//if(abs(refparton_flavor)>21 || refparton_flavor==-999 || refpt==0)continue;
 
 	//! Matching criteria 
         float delr = iJet->refdrjt[ij];
 
-	//! extra condition to remove the stray ref pt which
-	//! gets extra weight factor
-	//if(refpt > (maxpthat+10))continue;
-
-
-	//if(refparton_flavor==-999 || refparton_flavor==0)continue;
 
 	if(recopt<kptrecocut || refpt<kptgencut || refpt==0)continue;
 	//std::cout<<"\t \t "<<ij<<"\t refpt : "<<refpt<<"\t recopt : "<<recopt<<"\t raw pT : "<<rawpt<<std::endl;
 
 	if(fabs(refeta)<ketacut && refpt>80){
           //! Denominator for matching efficiency
-	  hPtAll [nj][centb]->Fill(refpt,wxs*wcen);
-          hEtaAll[nj][centb]->Fill(refeta,wxs*wcen);
-          hPhiAll[nj][centb]->Fill(refphi,wxs*wcen);
+	  hPtAll [nj][centb]->Fill(refpt,wxs*wcen*wvz);
+          hEtaAll[nj][centb]->Fill(refeta,wxs*wcen*wvz);
+          hPhiAll[nj][centb]->Fill(refphi,wxs*wcen*wvz);
 	  
 	  
 	  //! Response
 	  for (int idr=0;idr<25;idr++) {
 	    double drcut = 0.0+idr*(0.25-0.00)/(25-1);
-	    if (fabs(delr)>drcut) continue;
-	    hRspVsDeltaR[nj][centb][idr]->Fill(recopt/refpt,wxs*wcen);
+	    if (delr>drcut) continue;
+	    hRspVsDeltaR[nj][centb][idr]->Fill(recopt/refpt,wxs*wcen*wvz);
 	  }
 	  
 	  //! DeltaR efficiency
-	  hDeltaR[nj][centb]->Fill(delr,wxs*wcen);
+	  hDeltaR[nj][centb]->Fill(delr,wxs*wcen*wvz);
 	  for (int idrmax=0;idrmax<100;idrmax++) {
 	    float drmax = idrmax*0.01+0.005;
-	    hDeltaRAll[nj][centb]->Fill(drmax,wxs*wcen);
-	    if (delr<drmax) hDeltaRSel[nj][centb]->Fill(drmax,wxs*wcen);
+	    hDeltaRAll[nj][centb]->Fill(drmax,wxs*wcen*wvz);
+	    if (delr<drmax) hDeltaRSel[nj][centb]->Fill(drmax,wxs*wcen*wvz);
 	  }
         }
 
         //! Matching cut for gen-jet and reco-jet
-	if(fabs(delr) > kdRcut)continue;
+	if(delr > kdRcut)continue;
 
 
         if(fabs(refeta)<ketacut && refpt>80){
           //! Numerator for matching efficiency
-          hPtSel [nj][centb]->Fill(refpt,wxs*wcen);
-          hEtaSel[nj][centb]->Fill(refeta,wxs*wcen);
-          hPhiSel[nj][centb]->Fill(refphi,wxs*wcen);
+          hPtSel [nj][centb]->Fill(refpt,wxs*wcen*wvz);
+          hEtaSel[nj][centb]->Fill(refeta,wxs*wcen*wvz);
+          hPhiSel[nj][centb]->Fill(refphi,wxs*wcen*wvz);
         }
 
         //! pile up eta dependence
@@ -561,67 +566,63 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 	njets++;
 	meanpt += refpt;
         hNjets [nj][centb]->Fill(1.);
-        hgenpt [nj][centb]->Fill(refpt,wxs*wcen);
-        hgeneta[nj][centb]->Fill(refeta,wxs*wcen);
-	hgenphi[nj][centb]->Fill(refphi,wxs*wcen);
+        hgenpt [nj][centb]->Fill(refpt,wxs*wcen*wvz);
+        hgeneta[nj][centb]->Fill(refeta,wxs*wcen*wvz);
+	hgenphi[nj][centb]->Fill(refphi,wxs*wcen*wvz);
 
 
-	hrecopt [nj][centb]->Fill(recopt,wxs*wcen);
-        hrecoeta[nj][centb]->Fill(recoeta,wxs*wcen);
-        hrecophi[nj][centb]->Fill(recophi,wxs*wcen);
-        hrawpt [nj][centb]->Fill(rawpt,wxs*wcen);
+	hrecopt [nj][centb]->Fill(recopt,wxs*wcen*wvz);
+        hrecoeta[nj][centb]->Fill(recoeta,wxs*wcen*wvz);
+        hrecophi[nj][centb]->Fill(recophi,wxs*wcen*wvz);
+        hrawpt [nj][centb]->Fill(rawpt,wxs*wcen*wvz);
 
 
-        hgenptC [nj][centb]->Fill(refpt,wxs*wcen);
-	hrecoptC [nj][centb]->Fill(recopt,wxs*wcen);
-        hrawptC [nj][centb]->Fill(rawpt,wxs*wcen);
+        hgenptC [nj][centb]->Fill(refpt,wxs*wcen*wvz);
+	hrecoptC [nj][centb]->Fill(recopt,wxs*wcen*wvz);
+        hrawptC [nj][centb]->Fill(rawpt,wxs*wcen*wvz);
 
-	hrecogen[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen);
-        hrawgen [nj][centb]->Fill(refpt,rawpt/refpt,wxs*wcen);
-        hrecoraw[nj][centb]->Fill(rawpt,recopt/rawpt,wxs*wcen);
-        hrecoraw_ref [nj][centb]->Fill(refpt,recopt/rawpt,wxs*wcen);
+	hrecogen[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+        hrawgen [nj][centb]->Fill(refpt,rawpt/refpt,wxs*wcen*wvz);
+        hrecoraw[nj][centb]->Fill(rawpt,recopt/rawpt,wxs*wcen*wvz);
+        hrecoraw_ref [nj][centb]->Fill(refpt,recopt/rawpt,wxs*wcen*wvz);
 
-	hFracjets[nj][centb]->Fill(pthat,refpt,wxs*wcen);
+	hFracjets[nj][centb]->Fill(pthat,refpt,wxs*wcen*wvz);
 
-	/*
-	if(nj==2 && centb==0){
-	  std::cout<<"ievt : "<<ievt<<"\t refpt : "<<refpt<<"\t recopt : "<<recopt<<"\t rawpt : "<<rawpt
-		   <<"\t scale : "<<(recopt/refpt)<<"\t wxs : "<<wxs<<"\t wcen : "<<wcen<<std::endl;
-	}
-	*/
 
 	//! Response  (ratio of recopt/refpt)
-        hratiocorrrefpt[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen);
-	hratiorawrefpt [nj][centb]->Fill(refpt,rawpt/refpt,wxs*wcen);
-	hratiocorrrawpt [nj][centb]->Fill(recopt,recopt/rawpt,wxs*wcen);
+        hratiocorrrefpt[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+	hratiorawrefpt [nj][centb]->Fill(refpt,rawpt/refpt,wxs*wcen*wvz);
+	hratiocorrrawpt [nj][centb]->Fill(recopt,recopt/rawpt,wxs*wcen*wvz);
 
 	//! remaing jets
-	bool iRemain = ij!=ljet[0] || ij!=ljet[1];
-	if(iRemain)hratiocorrrefpt_remain[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen);
+        bool iRemain = ij!=ljet[0] || ij!=ljet[1];
+	if(iRemain)hratiocorrrefpt_remain[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+	
+        //! pT hat
+	hratiocorrrefpt_pthat[nj][centb]->Fill(pthat,recopt/refpt,wxs*wcen*wvz);
 
-	//! pT hat
-	hratiocorrrefpt_pthat[nj][centb]->Fill(pthat,recopt/refpt,wxs*wcen);	
+
 
 	//! 2D correlation between refpt and recopt
-        hcorrptrefpt[nj][centb]->Fill(refpt,recopt,wxs*wcen);
-        hrawptrefpt [nj][centb]->Fill(refpt,rawpt,wxs*wcen);
-	hcorrptrawpt[nj][centb]->Fill(rawpt,recopt,wxs*wcen);
+        hcorrptrefpt[nj][centb]->Fill(refpt,recopt,wxs*wcen*wvz);
+        hrawptrefpt [nj][centb]->Fill(refpt,rawpt,wxs*wcen*wvz);
+	hcorrptrawpt[nj][centb]->Fill(rawpt,recopt,wxs*wcen*wvz);
 
         //! Very fine bin in ref pt
-	hrescrpt[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen);
-	hresrrpt[nj][centb]->Fill(refpt,rawpt/refpt,wxs*wcen);
-	hresrcrpt[nj][centb]->Fill(recopt,recopt/rawpt,wxs*wcen);
+	hrescrpt[nj][centb]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+	hresrrpt[nj][centb]->Fill(refpt,rawpt/refpt,wxs*wcen*wvz);
+	hresrcrpt[nj][centb]->Fill(recopt,recopt/rawpt,wxs*wcen*wvz);
 
 	int ieta=-1;
 	if(fabs(recoeta)<1.3)ieta=0; //! barrel region
         else ieta=1; //! HCAL region
         if(ieta>=0){
-          hratiocorrrefpt_eta[nj][centb][ieta]->Fill(refpt,recopt/refpt,wxs*wcen);
-          hratiorawrefpt_eta [nj][centb][ieta]->Fill(refpt,rawpt/refpt,wxs*wcen);
+          hratiocorrrefpt_eta[nj][centb][ieta]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+          hratiorawrefpt_eta [nj][centb][ieta]->Fill(refpt,rawpt/refpt,wxs*wcen*wvz);
 	}
 
 	//! pileup study
-        hjetptpu[nj][centb]->Fill(recopt,iJet->jtpu[ij],wxs*wcen);
+        hjetptpu[nj][centb]->Fill(recopt,iJet->jtpu[ij],wxs*wcen*wvz);
 
         //! Response in different eta and phi bins
         int etabin = GetEtaBin(fabs(refeta));
@@ -630,29 +631,28 @@ int IndResponse(double kPt=80,const char *ksp="pbpb")
 	if(etabin < 0 || etabin>=maxe || phibin < 0 || phibin>=maxph)continue;
 
         //! Response in eta and phi bins
-        hpteta[nj][centb][etabin]->Fill(refpt,recopt/refpt,wxs*wcen);
-        hptphi[nj][centb][phibin]->Fill(refpt,recopt/refpt,wxs*wcen);
+        hpteta[nj][centb][etabin]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+        hptphi[nj][centb][phibin]->Fill(refpt,recopt/refpt,wxs*wcen*wvz);
+
 
         //! Gen:Reco correlation plots
-	hgenjrecoj [nj][centb]->Fill(refpt,recopt,wxs*wcen);
-	if(fabs(refparton_flavor)<=21)hgenjrecoj_pflavor [nj][centb]->Fill(refpt,recopt,wxs*wcen);
+	hgenjrecoj [nj][centb]->Fill(refpt,recopt,wxs*wcen*wvz);
+	if(fabs(refparton_flavor)<=21)hgenjrecoj_pflavor [nj][centb]->Fill(refpt,recopt,wxs*wcen*wvz);
 
       }//! ij loop
 
       hNevt[nj][centb]->Fill(vz);
       if(njets>0){
-	hAvjets[nj][centb]->Fill(pthat,njets,wxs*wcen);
-	hMeanPtjets[nj][centb]->Fill(pthat,meanpt/njets,wxs*wcen);
+	hAvjets[nj][centb]->Fill(pthat,njets,wxs*wcen*wvz);
+	hMeanPtjets[nj][centb]->Fill(pthat,meanpt/njets,wxs*wcen*wvz);
       }
-
       delete [] ljet;
-
     }//! nj jet loop
 
     if(istat){
-      hBin->Fill(hiBin);
-      hVz->Fill(vz);
-      hHF->Fill(hiHF,wxs*wcen);
+      hBin->Fill(hiBin,wxs*wcen*wvz);
+      hVz->Fill(vz,wxs*wcen*wvz);
+      hHF->Fill(hiHF,wxs*wcen*wvz);
       iEvent++;
     }
     //std::cout<<"Completed event #  "<<ievt<<std::endl; 
@@ -779,9 +779,9 @@ void FindLeadSubLeadJets(Jets *jetc, int *ljet)
     if(fabs(jetc->refdrjt[ij])>kdRcut || fabs(jetc->jteta[ij])>ketacut || jetc->jtpt[ij]<kptrecocut)continue;
 
     float jetpt = jetc->jtpt[ij];
-    //float dphi  = jetc->jtphi[ij] - jetc->jtphi[ljet[0]];
-    //if (dphi > pi ) dphi = dphi - 2 * pi;
-    //if (dphi < -pi) dphi = dphi + 2 * pi;
+    float dphi  = jetc->jtphi[ij] - jetc->jtphi[ljet[0]];
+    if (dphi > pi ) dphi = dphi - 2 * pi;
+    if (dphi < -pi) dphi = dphi + 2 * pi;
     //if(dphi < 2*pi/3.)continue;
     if (jetpt > tempt2){
       tempt2 = jetpt;
