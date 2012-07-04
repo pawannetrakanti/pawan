@@ -42,7 +42,7 @@ int ResponseAn(bool iFit=false){
   const int bins  = sizeof(ptbins)/sizeof(Double_t) - 1;
   const int nbins = bins;
 
-  bool iSave=false;
+  bool iSave=true;
   bool iSigma=false;
   //double max=265.;
 
@@ -189,7 +189,7 @@ int ResponseAn(bool iFit=false){
       hsmf[nj-3][ic]->SetLineColor(1);
       hsmf[nj-3][ic]->SetMarkerSize(1.0);
 
-      for(int ix=0;ix<hArM[nj][ic]->GetNbinsX();ix++){
+      for(int ix=0;ix<hRMS[nj][ic]->GetNbinsX();ix++){
 	float sigpp   = hRMS[nj-3][ncen-1]->GetBinContent(ix+1);
 	float esigpp  = hRMS[nj-3][ncen-1]->GetBinError(ix+1);
 	float meanpp  = hArM[nj-3][ncen-1]->GetBinContent(ix+1);
@@ -203,7 +203,8 @@ int ResponseAn(bool iFit=false){
 	//if(nj==5 && ic==5)cout<<"\t ix : "<<ix<<"\t pt : "<<ptbins[ix]<<"\t pbpb : "<<sigpbpb<<"\t pp : "<<sigpp<<"\t smf  "<<smf<<endl;
 
 	if(sigpbpb > sigpp){
-	  float err = (sqrt(pow(esigpbpb/sigpbpb,2) + pow(esigpp/sigpp,2)))*100.;
+	  //float err = smf*(sqrt(pow(esigpbpb/sigpbpb,2) + pow(esigpp/sigpp,2)));
+	  float err = 0.2*smf;
 	  //cout<<"\t ix : "<<ix<<"\t pt : "<<ptbins[ix]<<"\t pbpb : "<<sigpbpb<<"\t pp : "<<sigpp<<"\t smf : "<<smf<<"\t "<<err<<endl;
 	  hsmf  [nj-3][ic]->SetBinContent(ix,smf);
 	  hsmf  [nj-3][ic]->SetBinError(ix,err);
@@ -213,6 +214,27 @@ int ResponseAn(bool iFit=false){
 	}
 	if(ix==bins-1)cout<<smearf[nj-3][ic][ix];
 	else cout<<smearf[nj-3][ic][ix]<<",";
+      }
+      cout<<endl;
+    }
+    cout<<endl;
+  }
+  cout<<endl;
+  cout<<endl;
+  cout<<endl;
+
+  cout<<"Shift the mean also "<<endl;
+  for(int nj=pal[0];nj<pal[2]+1;nj++){
+    cout<<"For algo : "<<calgo[nj]<<endl;
+    for(int ic=0;ic<ncen;ic++){
+       if(ic>ncen-2)continue;
+      for(int ix=0;ix<hArM[nj][ic]->GetNbinsX();ix++){
+	float meanpp   = hArM[nj-3][ncen-1]->GetBinContent(ix+1);
+	float meanpbpb = hArM[nj][ic]->GetBinContent(ix+1);
+	float mdiff    = meanpp - meanpbpb;
+	//cout<<"ic : "<<ccent[ic]<<"\t mean diff : "<<mdiff<<endl;	
+	if(ix==bins-1)cout<<mdiff;
+	else cout<<mdiff<<",";
       }
       cout<<endl;
     }
@@ -246,12 +268,11 @@ int ResponseAn(bool iFit=false){
       MakeHistRMS(hRMS_remain[nj][ic],0.28,0.0001);
       MakeHistRMS(hRMS_genm[nj][ic],0.28,0.0001);
 
-      MakeHistMean(hArM[nj][ic],1.068,0.94);
+      MakeHistMean(hArM[nj][ic],1.038,0.96);
       MakeHistMean(hArM_lead[nj][ic],1.068,0.94);
       MakeHistMean(hArM_slead[nj][ic],1.068,0.94);
       MakeHistMean(hArM_remain[nj][ic],1.068,0.94);
       MakeHistMean(hArM_genm[nj][ic],1.068,0.94);
-      
       MakeHistMean(hArM_Raw[nj][ic],1.058,0.758);
     }      
   }
@@ -270,11 +291,77 @@ int ResponseAn(bool iFit=false){
 
   ipad=0;
   TCanvas *c00 = new TCanvas("c00","Smf",102,141,1328,776);
-  c00->Divide(3,2);
+  makeMultiPanelCanvas(c00,3,2,0.0,0.0,0.22,0.22,0.02);
+
   for(int ic=ncen-2;ic>=0;ic--){
     c00->cd(++ipad);
-    hsmf[2][ic]->Draw("p");
+    hsmf[1][ic]->SetStats(0);
+    hsmf[1][ic]->SetTitle("");
+    hsmf[1][ic]->SetMaximum(13.68);
+    hsmf[1][ic]->SetMinimum(0.0009);
+    hsmf[1][ic]->GetXaxis()->SetRangeUser(xmin,xmax);
+    hsmf[1][ic]->GetXaxis()->SetTitle("GenJet p_{T} (GeV/c)");
+    hsmf[1][ic]->GetXaxis()->CenterTitle(true);
+    hsmf[1][ic]->GetXaxis()->SetMoreLogLabels();
+    hsmf[1][ic]->GetXaxis()->SetNoExponent();
+    hsmf[1][ic]->GetXaxis()->SetTitleFont(42);
+    hsmf[1][ic]->GetXaxis()->SetLabelFont(42);
+    hsmf[1][ic]->GetXaxis()->SetTitleSize(0.07);
+    hsmf[1][ic]->GetXaxis()->SetTitleOffset(1.15);
+    hsmf[1][ic]->GetXaxis()->SetLabelSize(0.07);
+    hsmf[1][ic]->GetXaxis()->SetLabelOffset(0.005);
+    hsmf[1][ic]->GetXaxis()->SetNdivisions(507);
+    hsmf[1][ic]->GetYaxis()->SetTitle("pp Smearing factor");
+    hsmf[1][ic]->GetYaxis()->SetTitleSize(0.07);
+    hsmf[1][ic]->GetYaxis()->SetTitleOffset(1.50);
+    hsmf[1][ic]->GetYaxis()->SetLabelSize(0.07);
+    hsmf[1][ic]->GetYaxis()->SetNdivisions(507);
+    hsmf[1][ic]->GetYaxis()->SetDecimals(true);
+    hsmf[1][ic]->GetYaxis()->SetTitleFont(42);
+    hsmf[1][ic]->GetYaxis()->SetLabelFont(42);
+    hsmf[1][ic]->Draw("p");
+
+    if(ipad==1){
+      TPaveText *pt3 = new TPaveText(0.3151804,0.7526395,0.6050685,0.933635,"brNDC");
+      pt3->SetBorderSize(0);
+      pt3->SetFillColor(10);
+      pt3->SetTextFont(42);
+      TText *text3 = pt3->AddText("CMS Simulation");
+      text3->SetTextSize(0.07);
+      TText *text4 = pt3->AddText("PYTHIA Z2");
+      text4->SetTextSize(0.07);
+      pt3->Draw();
+    }
+    
+    TPaveText *pt = new TPaveText(0.6945641,0.785822,0.9435955,0.9245852,"brNDC");
+    pt->SetBorderSize(0);
+    pt->SetFillColor(10);
+    pt->SetTextFont(42);
+    TText *text = pt->AddText(Form("%s",ccent[ic]));
+    text->SetTextSize(0.07);
+    pt->Draw();
+
+    if(ipad==2){
+      TPaveText *pt1 = new TPaveText(0.119748,0.7134238,0.6061375,0.9095023,"brNDC");
+      pt1->SetBorderSize(0);
+      pt1->SetFillColor(10);
+      pt1->SetTextFont(42);
+      TText *text1 = pt1->AddText(Form("%s",algn[1]));
+      text1->SetTextSize(0.07);
+      TText *text2 = pt1->AddText("|#eta|<2.0");
+      text2->SetTextSize(0.07);
+      pt1->Draw();
+    }
+
+
   }
+  if(iSave){
+    c00->SaveAs(Form("AN/Smearing/SmearingFactor_%s.png",calgo[pal[1]]));
+    c00->SaveAs(Form("AN/Smearing/SmearingFactor_%s.pdf",calgo[pal[1]]));
+    c00->SaveAs(Form("AN/Smearing/SmearingFactor_%s.C",calgo[pal[1]]));
+    c00->SaveAs(Form("AN/Smearing/SmearingFactor_%s.eps",calgo[pal[1]]));
+  }
+
   //return 0;
 
 
@@ -299,7 +386,7 @@ int ResponseAn(bool iFit=false){
     //std::cout<<std::endl;
     ipad=0;
 
-    l3[nj] = new TLegend(0.644011,0.6497811,0.8825236,0.9649781,NULL,"BRNDC");
+    l3[nj] = new TLegend(0.2453033,0.6247655,0.4838159,0.9399625,NULL,"BRNDC");
     l3[nj]->SetHeader("");
     l3[nj]->SetBorderSize(0);
     l3[nj]->SetTextFont(42);
@@ -371,7 +458,7 @@ int ResponseAn(bool iFit=false){
 
       if(ipad==6){
 	l3[nj]->AddEntry(hRMS[pal[nj]-3][ncen-1],"pp","p"); 
-	l3[nj]->AddEntry(hRMS[pal[nj]][ncen-1],"pp w pu","p"); 
+	l3[nj]->AddEntry(hRMS[pal[nj]][ncen-1],"pp w pu subtraction","p"); 
 	l3[nj]->AddEntry(hRMS[pal[nj]][0],"PbPb","p"); 
 	l3[nj]->Draw();
       }
@@ -382,7 +469,7 @@ int ResponseAn(bool iFit=false){
 	pt3->SetTextFont(42);
 	TText *text3 = pt3->AddText("CMS Simulation");
 	text3->SetTextSize(0.09);
-	TText *text4 = pt3->AddText("PYTHIA Z2+HYDJET1.8");
+	TText *text4 = pt3->AddText("PYTHIA Z2 + HYDJET 1.8");
 	text4->SetTextSize(0.09);
 	pt3->Draw();
       }

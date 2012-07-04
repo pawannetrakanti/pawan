@@ -26,15 +26,6 @@ const double pi=acos(-1.);
 const double pi2=2*pi -1;
 
 //! pt binning
-//double ptbins[] ={80.,100, 110, 120, 130, 140, 150, 160, 170, 180, 200, 240, 300};
-/*
-double ptbins[] ={30.,40.,50.,60.,70.,80.,90.,
-                  100.,110.,120.,130.,140.,150.,160.,170.,180.,190.,
-                  200.,210.,220.,230.,240.,250.,260.,270.,280.,290.,
-                  300.,310.,320.,330.,340.,350.,360.,370.,380.,390.,
-                  400.,410.,420.,430.,440.,450.,460.,470.,480.,490.,
-                  500.};
-*/
 double ptbins[] ={80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400};
 const int bins  = sizeof(ptbins)/sizeof(Double_t) - 1;
 const int nbins = bins;
@@ -66,7 +57,7 @@ void FillMeanSigma(int /*ip*/,TH1 */*h1*/,TH1 */*ArM*/,TH1 */*RMS*/,TH1 */*Mean*
 int SmearResponse(int rfit=0)
 {
   const char *reta = "eta2.0";
-  //bool iSave=false;
+  bool iSave=true;
 
   float ketacut=1.6;
   if(strcmp(reta,"eta2.0")==0)ketacut=2;
@@ -111,7 +102,7 @@ int SmearResponse(int rfit=0)
   //return 0;
 
   //const char *mcent[ncen] = {"010"  ,"1020"  ,"2030"  ,"3050"  ,"5070"  ,"7090"  ,"pp"};
-  const int   icol [ncen] = {      2,     2,       2,       2,      2,       2,   1};
+  const int   icol [ncen] = {     2,       2,       2,       2,      2,       2,    1};
 
   gStyle->SetPadTickY(1);
   gStyle->SetPadTickX(1);
@@ -144,9 +135,8 @@ int SmearResponse(int rfit=0)
   TH1F *hMean_pp [knj][ncen], *hArM_pp[knj][ncen], *hSigma_pp [knj][ncen], *hRMS_pp[knj][ncen];
 
   //! Ratio of smeared pp and pbpb
-  TH1F *hRatioS[knj][ncen], *hRatioM[knj][ncen];
-  TH1F *hRatioUS[knj][ncen];
-
+  TH1F *hRatioS[knj][ncen],  *hRatioUS[knj][ncen];
+  TH1F *hRatioM[knj][ncen], *hRatioUM[knj][ncen];
   for(int nj=0;nj<knj;nj++){
     cout<<"nj : "<<nj<<Form("\t %s",calgo[nj])<<endl;
 
@@ -219,6 +209,10 @@ int SmearResponse(int rfit=0)
 	hRatioM[nj][icen]->SetName(Form("hRatioM%d_%d",nj,icen));
 	hRatioM[nj][icen]->Divide(hMean_pp[nj][icen]);
 
+	hRatioUM[nj][icen] = (TH1F*)hMean[nj][icen]->Clone(Form("hRatioUM%d_%d",nj,icen));
+	hRatioUM[nj][icen]->SetName(Form("hRatioUM%d_%d",nj,icen));
+	hRatioUM[nj][icen]->Divide(hMean_pp[nj][ncen-1]);
+
 	
       }else{
 
@@ -234,6 +228,10 @@ int SmearResponse(int rfit=0)
 	hRatioM[nj][icen]->SetName(Form("hRatioM%d_%d",nj,icen));
 	hRatioM[nj][icen]->Divide(hArM_pp[nj][icen]);
 
+	hRatioUM[nj][icen] = (TH1F*)hArM[nj][icen]->Clone(Form("hRatioUM%d_%d",nj,icen));
+	hRatioUM[nj][icen]->SetName(Form("hRatioUM%d_%d",nj,icen));
+	hRatioUM[nj][icen]->Divide(hArM_pp[nj][ncen-1]);
+
       }
     }
   }
@@ -247,8 +245,22 @@ int SmearResponse(int rfit=0)
     }
   }
   */
-
-
+  /*
+  TFile *fout = new TFile("Ratio_Smearedppandpbpb.root","RECREATE");
+  fout->cd();
+  for(int nj=0;nj<knj;nj++){
+    for(int icen=0;icen<ncen-1;icen++){
+      hRatioS[nj][icen]->SetName(Form("hRatioS_%s_%s",calgo[nj],ccent[icen]));
+      hRatioS[nj][icen]->SetTitle(Form("Ratio Reco jet p_{T} PbPb / pp smeared MC %s %s",calgo[nj],ccent[icen]));
+      hRatioS[nj][icen]->Write();
+      hRatioUS[nj][icen]->SetName(Form("hRatioUS_%s_%s",calgo[nj],ccent[icen]));
+      hRatioUS[nj][icen]->SetTitle(Form("Ratio Reco jet p_{T} pp smeared / pp MC %s %s",calgo[nj],ccent[icen]));
+      hRatioUS[nj][icen]->Write();
+    }  
+  }
+  fout->Close();
+  return 0;
+  */
 
   TText *text=0;
   int ipad=0;
@@ -369,13 +381,18 @@ int SmearResponse(int rfit=0)
      }
    }
    c99[ic]->Update();
-   c99[ic]->SaveAs(Form("Smearing_Distributions_%s_%s.png",calgo[1],ccent[ic]));
+   if(iSave){
+     c99[ic]->SaveAs(Form("AN/Smearing/Smearing_Distributions_%s_%s.png",calgo[1],ccent[ic]));
+     c99[ic]->SaveAs(Form("AN/Smearing/Smearing_Distributions_%s_%s.pdf",calgo[1],ccent[ic]));
+     c99[ic]->SaveAs(Form("AN/Smearing/Smearing_Distributions_%s_%s.C",calgo[1],ccent[ic]));
+     c99[ic]->SaveAs(Form("AN/Smearing/Smearing_Distributions_%s_%s.eps",calgo[1],ccent[ic]));
+   }
  }
 
   TPaveText *pt[ncen];
   ipad=0;
-  TCanvas *c3 = new TCanvas("c3","pp sigma and mean",15,131,1885,546);
-  //TCanvas *c3 = new TCanvas("c3","pp sigma and mean",316,23,1349,323);
+  TCanvas *c3 = new TCanvas("c3","sigma",15,131,1885,546);
+  //TCanvas *c3 = new TCanvas("c3","sigma",316,23,1349,323);
   makeMultiPanelCanvas(c3,ncen-1,2,0.0,0.0,0.22,0.22,0.02);
 
   hSigma_pp[1][ncen-1]->SetLineColor(1);
@@ -528,7 +545,7 @@ int SmearResponse(int rfit=0)
     hRatioUS[1][icen]->Draw("psame");
 
     if(ipad==1){
-      TLegend *l6 = new TLegend(0.2485371,0.2861294,0.6688573,0.5113801,NULL,"BRNDC");
+      TLegend *l6 = new TLegend(0.2508922,0.7662123,0.851988,0.9672997,NULL,"BRNDC");
       l6->SetHeader("");
       l6->SetBorderSize(0);
       l6->SetTextFont(42);
@@ -545,7 +562,199 @@ int SmearResponse(int rfit=0)
     }
     l2->Draw();
   }
-  //plot();
+  if(iSave){
+    c3->SaveAs(Form("AN/Smearing/Smearing_Resolutions_%s.png",calgo[1]));
+    c3->SaveAs(Form("AN/Smearing/Smearing_Resolutions_%s.pdf",calgo[1]));
+    c3->SaveAs(Form("AN/Smearing/Smearing_Resolutions_%s.C",calgo[1]));
+    c3->SaveAs(Form("AN/Smearing/Smearing_Resolutions_%s.eps",calgo[1]));
+  }
+
+
+  //! Mean
+  ipad=0;
+  TCanvas *c4 = new TCanvas("c4","Mean",15,131,1885,546);
+  makeMultiPanelCanvas(c4,ncen-1,2,0.0,0.0,0.22,0.22,0.02);
+
+  hMean_pp[1][ncen-1]->SetLineColor(1);
+  hArM_pp  [1][ncen-1]->SetLineColor(1);
+
+  //! here starts the centrality  
+  for(int icen=ncen-2;icen>=0;icen--){
+    c4->cd(++ipad); 
+    //gPad->SetLogx();
+
+    if(iSigma){
+      MakeHistMean(hMean[1][icen],1.046,0.934);
+      
+      hMean[1][icen]->Draw("p");
+
+      hMean_pp[1][icen]->SetMarkerStyle(30);
+      hMean_pp[1][icen]->SetMarkerColor(icol[icen]);
+      hMean_pp[1][icen]->SetLineColor(icol[icen]);
+      hMean_pp[1][icen]->SetMarkerSize(1.3);
+      hMean_pp[1][icen]->SetLineStyle(1);
+      hMean_pp[1][icen]->Draw("psame");    
+
+      hMean_pp[1][ncen-1]->SetLineColor(1);
+      hMean_pp[1][ncen-1]->SetLineStyle(1);
+      hMean_pp[1][ncen-1]->Draw("histsame");    
+      
+    }else{
+
+      MakeHistMean(hArM[1][icen],1.046,0.934);
+      hArM[1][icen]->SetMarkerStyle(20);
+      hArM[1][icen]->SetMarkerColor(1);
+      hArM[1][icen]->SetLineColor(1);
+      hArM[1][icen]->SetMarkerSize(1.0);
+      hArM[1][icen]->Draw("p");
+
+      hArM_pp[1][icen]->SetMarkerStyle(30);
+      hArM_pp[1][icen]->SetMarkerColor(icol[icen]);
+      hArM_pp[1][icen]->SetLineColor(icol[icen]);
+      hArM_pp[1][icen]->SetMarkerSize(1.3);
+      hArM_pp[1][icen]->SetLineStyle(1);
+      hArM_pp[1][icen]->Draw("psame");    
+
+      hArM_pp[1][ncen-1]->SetLineColor(1);
+      hArM_pp[1][ncen-1]->SetLineStyle(1);
+      hArM_pp[1][ncen-1]->Draw("histsame");    
+    }
+
+    pt[icen]   = new TPaveText(0.269672,0.04089943,0.4756715,0.1469053,"brNDC");
+    pt[icen]->SetBorderSize(0);
+    pt[icen]->SetFillColor(10);
+    pt[icen]->SetTextFont(42);
+    text = pt[icen]->AddText(Form("%s",ccent[icen]));
+    text->SetTextSize(0.09);
+    pt[icen]->Draw();
+    
+    if(ipad==1){
+      TPaveText *p1 = new TPaveText(0.45,0.65,0.75,0.85,"brNDC");
+      p1->SetBorderSize(0);
+      p1->SetFillColor(10);
+      p1->SetTextFont(42);
+      TText *text1 = p1->AddText("CMS Preliminary");
+      TText *text2 = p1->AddText("Anti-k_{T}, PF, R =0.3");
+      text1->SetTextSize(0.08);
+      text2->SetTextSize(0.08);
+      p1->Draw();
+    }
+    else if(ipad==2){
+      TPaveText *p2 = new TPaveText(0.45,0.65,0.75,0.85,"brNDC");
+      p2->SetBorderSize(0);
+      p2->SetFillColor(10);
+      p2->SetTextFont(42);
+      TText *text3 = p2->AddText("PYTHIA+HYDJET 1.8");
+      TText *text4 = p2->AddText(Form("|#eta_{jet}|<%0.0f",ketacut));
+      text3->SetTextSize(0.08);
+      text4->SetTextSize(0.08);
+      p2->Draw();
+
+    }else if(ipad==3){
+      TLegend *l5 = new TLegend(0.2275405,0.6732997,0.6497149,0.960796,NULL,"BRNDC");
+      l5->SetHeader("");
+      l5->SetBorderSize(0);
+      l5->SetTextFont(42);
+      l5->SetTextSize(0.07);
+      l5->SetLineColor(1);
+      l5->SetLineStyle(1);
+      l5->SetLineWidth(1);
+      l5->SetFillColor(10);
+      l5->SetFillStyle(1001);
+      l5->SetHeader("");			  
+      
+      if(iSigma){
+	l5->AddEntry(hMean[1][0] ,"PbPb","p"); 
+	l5->AddEntry(hMean_pp[1][0] ,"pp (smeared)","p"); 
+	l5->AddEntry(hMean_pp[1][ncen-1] ,"pp","l"); 
+      }else{
+	l5->AddEntry(hArM[1][0] ,"PbPb","p"); 
+	l5->AddEntry(hArM_pp[1][0] ,"pp (smeared)","p"); 
+	l5->AddEntry(hArM_pp[1][ncen-1] ,"pp","l"); 
+      }
+      l5->Draw();
+    }
+
+    c4->cd(ipad+(ncen-1));
+    //gPad->SetLogx();
+    TLine *l2 = new TLine(xmin,1,xmax+250,1);
+    l2->SetLineWidth(1);
+    l2->SetLineStyle(2);
+
+    
+    hRatioM[1][icen]->SetTitle("");
+    hRatioM[1][icen]->GetXaxis()->SetRangeUser(xmin,xmax);
+    hRatioM[1][icen]->GetXaxis()->SetTitle("GenJet p_{T} (GeV/c)");
+    hRatioM[1][icen]->GetXaxis()->CenterTitle(true);
+    hRatioM[1][icen]->GetXaxis()->SetMoreLogLabels();
+    hRatioM[1][icen]->GetXaxis()->SetNoExponent();
+    hRatioM[1][icen]->GetXaxis()->SetNdivisions(507);
+    hRatioM[1][icen]->GetXaxis()->SetLabelFont(42);
+    hRatioM[1][icen]->GetXaxis()->SetLabelOffset(0.01);
+    hRatioM[1][icen]->GetXaxis()->SetLabelSize(0.07);
+    hRatioM[1][icen]->GetXaxis()->SetTitleSize(0.07);
+    hRatioM[1][icen]->GetXaxis()->SetTitleOffset(1.18);
+    hRatioM[1][icen]->GetXaxis()->SetTitleFont(42);
+    hRatioM[1][icen]->GetYaxis()->SetTitle("Ratio");
+    hRatioM[1][icen]->GetYaxis()->CenterTitle(true);
+    hRatioM[1][icen]->GetYaxis()->SetNdivisions(507);
+    hRatioM[1][icen]->GetYaxis()->SetLabelFont(42);
+    hRatioM[1][icen]->GetYaxis()->SetLabelOffset(0.01);
+    hRatioM[1][icen]->GetYaxis()->SetLabelSize(0.07);
+    hRatioM[1][icen]->GetYaxis()->SetTitleSize(0.07);
+    hRatioM[1][icen]->GetYaxis()->SetTitleOffset(1.44);
+    hRatioM[1][icen]->GetYaxis()->SetDecimals(true);
+
+    //hRatioM[1][icen]->SetMaximum(1.1893);
+    //hRatioM[1][icen]->SetMinimum(0.8993);
+
+    hRatioM[1][icen]->SetMaximum(1.0593);
+    hRatioM[1][icen]->SetMinimum(0.955);
+
+
+    //hRatioM[1][icen]->SetMaximum(1.0593);
+    //hRatioM[1][icen]->SetMinimum(0.943);
+    hRatioM[1][icen]->SetMarkerStyle(30);
+    hRatioM[1][icen]->SetMarkerSize(1.0);
+    hRatioM[1][icen]->SetMarkerColor(2);
+    hRatioM[1][icen]->SetLineColor(2);
+    hRatioM[1][icen]->Draw("p");
+
+    hRatioUM[1][icen]->SetMarkerStyle(24);
+    hRatioUM[1][icen]->SetMarkerSize(0.9);
+    hRatioUM[1][icen]->Draw("psame");
+
+    if(ipad==1){
+      TLegend *l6 = new TLegend(0.2665729,0.7350091,0.6847265,0.9603656,NULL,"BRNDC");
+      l6->SetHeader("");
+      l6->SetBorderSize(0);
+      l6->SetTextFont(42);
+      l6->SetTextSize(0.07);
+      l6->SetLineColor(1);
+      l6->SetLineStyle(1);
+      l6->SetLineWidth(1);
+      l6->SetFillColor(10);
+      l6->SetFillStyle(1001);
+      l6->SetHeader("");			  
+      l6->AddEntry(hRatioUM[1][icen],"PbPb / pp","p"); 
+      l6->AddEntry(hRatioM[1][icen] ,"PbPb / pp (smeared)","p"); 
+      l6->Draw();
+    }
+    l2->Draw();
+  }
+  if(iSave){
+    c4->SaveAs(Form("AN/Smearing/Smearing_Means_%s.png",calgo[1]));
+    c4->SaveAs(Form("AN/Smearing/Smearing_Means_%s.pdf",calgo[1]));
+    c4->SaveAs(Form("AN/Smearing/Smearing_Means_%s.C",calgo[1]));
+    c4->SaveAs(Form("AN/Smearing/Smearing_Means_%s.eps",calgo[1]));
+  }
+
+
+
+
+
+
+
   return 0;
 }
 void MakeHist(TH1 *histo,int istat)

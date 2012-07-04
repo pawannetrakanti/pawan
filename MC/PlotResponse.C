@@ -43,6 +43,11 @@ double ptbins[] ={80, 100, 120, 140, 160, 180, 200, 220, 240, 260, 280, 300, 320
 const int bins  = sizeof(ptbins)/sizeof(Double_t) - 1;
 const int nbins = bins;
 
+//! data pt binning     
+double ptbins_data[] ={100, 110, 120, 130, 140, 150, 160, 170, 180, 200, 240, 300};
+const int dbins = sizeof(ptbins_data)/sizeof(double) - 1;
+
+
 
 const int knj=7;
 const char *calgo[knj]= {
@@ -93,7 +98,7 @@ int PlotResponse(int cent=0,const char *ksp="pbpb",const char *algo="pu",int rfi
   }
   
 
-  int ksmooth=0;
+  //int ksmooth=0;
   const char *reta = "eta2.0";
   float ketacut=1.6;
   if(strcmp(reta,"eta2.0")==0)ketacut=2;
@@ -415,9 +420,9 @@ int PlotResponse(int cent=0,const char *ksp="pbpb",const char *algo="pu",int rfi
     hjetptpu  [nj]->SetName(Form("hjetptpu_%s_%s_%s",ksp,calgo[nj],ccent[cent]));
 
     //! pileup mean from MC
-    hpmean[nj] = new TH1F(Form("hpmean%s_%s_%s",ksp,calgo[nj],ccent[cent]),Form("hpmean%s_%s_%s",ksp,calgo[nj],ccent[cent]),bins,ptbins);
+    hpmean[nj] = new TH1F(Form("hpmean%s_%s_%s",ksp,calgo[nj],ccent[cent]),Form("hpmean%s_%s_%s",ksp,calgo[nj],ccent[cent]),dbins,ptbins_data);
     hpmean[nj]->Sumw2();
-    hprms[nj] = new TH1F(Form("hprms%s_%s_%s",ksp,calgo[nj],ccent[cent]),Form("hprms%s_%s_%s",ksp,calgo[nj],ccent[cent]),bins,ptbins);
+    hprms[nj] = new TH1F(Form("hprms%s_%s_%s",ksp,calgo[nj],ccent[cent]),Form("hprms%s_%s_%s",ksp,calgo[nj],ccent[cent]),dbins,ptbins_data);
     hprms[nj]->Sumw2();
 
     for(int ix=1;ix<=hjetptpu[nj]->GetNbinsX();ix++){
@@ -450,9 +455,9 @@ int PlotResponse(int cent=0,const char *ksp="pbpb",const char *algo="pu",int rfi
       hjetptpu_etab  [nj][ie]->SetName(Form("hjetptpu_etab_%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie));
 
       //! pileup mean from MC
-      hpmean_etab[nj][ie] = new TH1F(Form("hpmean_etab%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),Form("hpmean_etab_%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),bins,ptbins);
+      hpmean_etab[nj][ie] = new TH1F(Form("hpmean_etab%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),Form("hpmean_etab_%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),dbins,ptbins_data);
       hpmean_etab[nj][ie]->Sumw2();
-      hprms_etab[nj][ie] = new TH1F(Form("hprms_etab%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),Form("hprms_etab_%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),bins,ptbins);
+      hprms_etab[nj][ie] = new TH1F(Form("hprms_etab%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),Form("hprms_etab_%s_%s_%s_%d",ksp,calgo[nj],ccent[cent],ie),dbins,ptbins_data);
       hprms_etab[nj][ie]->Sumw2();
 
       for(int ix=1;ix<=hjetptpu_etab[nj][ie]->GetNbinsX();ix++){
