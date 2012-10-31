@@ -17,6 +17,13 @@ void  LoadParameters();
 int   GetCBin(int /*bin*/);
 float AfterBurnMean(int /*nj*/,int /*ic*/,float /*smpt*/,float /*refpt*/);
 float GetPtBin(float /*smpt*/);
+
+float GetSmFactor(int /*nj*/,int /*ic*/,float /*recopt*/);
+float GetMeanShift(int /*nj*/,int /*ic*/,float /*recopt*/);
+
+float GetSmearedPtMC_NoMeanShift(int /*nj*/,int /*ic*/,float /*recopt*/,float /*refpt*/);
+float GetSmearedPtMC_OnlyMeanShift(int /*nj*/,int /*ic*/,float /*recopt*/,float /*refpt*/);
+
 const int NCEN=7;
 const int KNJ =7;
 
@@ -145,6 +152,62 @@ float GetSmearedPtMC(int nj,int ic,float recopt,float refpt)
   }
   return smpt;
 }
+float GetSmearedPtMC_NoMeanShift(int nj,int ic,float recopt,float refpt)
+{
+  //! Get Centrality bin
+  //int icen = GetCBin(ic);
+  int icen=ic;
+  //! Smearing currently doing from 30 GeV onwards
+  float smpt = recopt;// - fmd[nj][icen]->Eval(refpt)*recopt;
+  //smpt = AfterBurnMean(nj,ic,smpt,refpt);
+  int ib=-1;
+  if(smpt>=90){
+    float tsmf = fsm[nj][icen]->Eval(refpt);
+    if(refpt>120 && refpt<=240){
+      ib=-1;
+      ib = (int)(refpt - 120.)/40.;
+      if(ib<0)tsmf+=0;
+      else tsmf += afsmf[nj][icen][ib];
+    }
+    smpt = gRandom->Gaus(smpt,tsmf);
+  }else{
+    ib=-1;
+    ib = (int)(recopt - 30.)/20.;
+    if(ib<0)return recopt;
+    else smpt = gRandom->Gaus(smpt,lptsmf[nj][icen][ib]);
+  }
+  return smpt;
+}
+
+float GetSmearedPtMC_OnlyMeanShift(int nj,int ic,float recopt,float refpt)
+{
+  //! Get Centrality bin
+  //int icen = GetCBin(ic);
+  int icen=ic;
+
+  //! Smearing currently doing from 30 GeV onwards
+  float smpt = recopt - fmd[nj][icen]->Eval(refpt)*recopt;
+  smpt = AfterBurnMean(nj,ic,smpt,refpt);
+  /*
+  int ib=-1;
+  if(smpt>=90){
+    float tsmf = fsm[nj][icen]->Eval(refpt);
+    if(refpt>120 && refpt<=240){
+      ib=-1;
+      ib = (int)(refpt - 120.)/40.;
+      if(ib<0)tsmf+=0;
+      else tsmf += afsmf[nj][icen][ib];
+    }
+    smpt = gRandom->Gaus(smpt,tsmf);
+  }else{
+    ib=-1;
+    ib = (int)(recopt - 30.)/20.;
+    if(ib<0)return recopt;
+    else smpt = gRandom->Gaus(smpt,lptsmf[nj][icen][ib]);
+  }
+  */
+  return smpt;
+}
 
 float GetSmearedPtData(int nj,int ic,float recopt,float fpercent,const char *csys)
 {
@@ -217,6 +280,32 @@ float GetSmearedPtData(int nj,int ic,float recopt,float fpercent,const char *csy
     smpt = gRandom->Gaus(smpt,tsmf);
   }
   return smpt;
+}
+float GetSmFactor(int nj,int ic,float recopt)
+{
+  int icen=ic;
+  float smpt = recopt;
+  int ib=-1;
+  float tsmf = fsm[nj][icen]->Eval(recopt);
+  if(recopt<=90){  
+    ib = (int)(recopt - 30.)/20.;
+    if(ib<0)return smpt;
+    else tsmf = lptsmf[nj][icen][ib];
+  }else{
+    tsmf = fsm[nj][icen]->Eval(recopt);
+    //if(recopt>=120 && recopt<=240){
+    //ib=-1;
+    //ib = (int)(recopt - 120.)/40.;
+    //if(ib<0)tsmf+=0;
+    //else tsmf += afsmf[nj][icen][ib];
+    //}
+  }
+  return tsmf;
+}
+float GetMeanShift(int nj,int ic,float recopt)
+{
+  float msf = fmd[nj][ic]->Eval(recopt);
+  return msf;
 }
 int GetCBin(int bin)
 {
