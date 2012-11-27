@@ -30,7 +30,7 @@ float GetSmearedPtData_OnlyMeanShift(int /*nj*/,int /*ic*/,float /*recopt*/,floa
 
 //! For PbPb jet energy scale correction for Pu algorithms
 float GetPbPbCorrectedScaleMC  (int /*nj*/,int /*ic*/,float /*recopt*/,float /*refpt*/);
-float GetPbPbCorrectedScaleData(int /*nj*/,int /*ic*/,float /*recopt*/,float /*refpt*/)
+float GetPbPbCorrectedScaleData(int /*nj*/,int /*ic*/,float /*recopt*/,float /*refpt*/);
 
 const int NCEN=7;
 const int KNJ =7;
