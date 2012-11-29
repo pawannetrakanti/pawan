@@ -1,5 +1,5 @@
 #include "HiForest/hiForest.h"
-#include "SmearingFactors_New.h"
+#include "SmearingFactors.h"
 #include <TChain.h>
 #include <TTree.h>
 #include <TSystem.h>
