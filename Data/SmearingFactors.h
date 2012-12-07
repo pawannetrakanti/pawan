@@ -293,6 +293,10 @@ float GetSmearedPtMC_OnlyMeanShift(int nj,int ic,float recopt,float refpt)
 float GetSmearedPtData(int nj,int ic,float recopt,float fpercent,const char *csys)
 {
   int icen = ic;
+
+  if(recopt<60)return recopt;
+
+
   //! Mean shift
   float mpp   = fscale[nj][NCEN-1]->Eval(recopt);
   float mpbpb = fscale[nj][icen]->Eval(recopt);
@@ -342,6 +346,9 @@ float GetSmearedPtData(int nj,int ic,float recopt,float fpercent,const char *csy
 float GetSmearedPtData_woAfBurn(int nj,int ic,float recopt,float fpercent,const char *csys)
 {
   int icen = ic;
+
+  if(recopt<60)return recopt;
+
   //! Mean shift
   float mpp   = fscale[nj][NCEN-1]->Eval(recopt);
   float mpbpb = fscale[nj][icen]->Eval(recopt);
@@ -391,6 +398,9 @@ float GetSmearedPtData_woAfBurn(int nj,int ic,float recopt,float fpercent,const 
 float GetSmearedPtData_NoMeanShift(int nj,int ic,float recopt,float fpercent,const char *csys)
 {
   int icen = ic;
+
+  if(recopt<60)return recopt;
+
   float smpt = recopt;
   //! Get resolutions
   float rpp   = fresol[nj][NCEN-1]->Eval(recopt); //! pp
@@ -456,8 +466,10 @@ float GetPbPbCorrectedScaleData(int nj,int hibin,float recopt)
 }
 float GetReWeight(int nj,int ic,float smpt)
 {
+  //! Only to be used for pp data 
+
   float rewe=1;
-  if(nj!=2)return rewe;
+  if(nj!=2 || smpt<60)return rewe;
 
   if(ic==0 || ic==1){ //! 0-10%
     fReWe->SetParameters(fwe010[ic][0],fwe010[ic][1],fwe010[ic][2]);
@@ -472,7 +484,7 @@ float GetReWeight(int nj,int ic,float smpt)
 float GetReWeight_NoMeanShift(int nj,int ic,float smpt)
 {
   float rewe=1;
-  if(nj!=2)return rewe;
+  if(nj!=2 | smpt<60)return rewe;
 
   if(ic==0 || ic==1){ //! 0-10%
     fReWe->SetParameters(fwe010_noms[ic][0],fwe010_noms[ic][1],fwe010_noms[ic][2]);
