@@ -121,21 +121,21 @@ int plot()
   }
 
 
-  //! Read Kurt file  
+  //! Read Kurt's file  
   for(int i=0; i<nmult;i++){ //! 0 inclusive and 5 central
     heta1  [0][i] = (TH1D*)fin[0]->Get(Form("eta_lead%d",i));
-    heta1  [0][i]->Scale(1./ heta1  [0][i]->Integral());
+    //heta1  [0][i]->Scale(1./ heta1  [0][i]->Integral());
     heta2  [0][i] = (TH1D*)fin[0]->Get(Form("eta_sublead%d",i));
-    heta2  [0][i]->Scale(1./ heta2  [0][i]->Integral());
+    //heta2  [0][i]->Scale(1./ heta2  [0][i]->Integral());
     hpt2pt1[0][i] = (TH1D*)fin[0]->Get(Form("mult%d_0",i));
     //hpt2pt1[0][i]->Scale(1./ hpt2pt1[0][i]->Integral());
     hdphi  [0][i] = (TH1D*)fin[0]->Get(Form("delphi%d_0",i));
-    hdphi  [0][i]->Scale(1./hdphi[0][i]->Integral());
+    //hdphi  [0][i]->Scale(1./hdphi[0][i]->Integral());
     hdjeta [0][i] = (TH1D*)fin[0]->Get(Form("etaDistropPb_%d",i));
-    //hdjeta [0][i]->Scale(1./hdjeta[0][i]->Integral());
+    hdjeta [0][i]->Scale(1./hdjeta[0][i]->Integral());
   }
 
-  //! Read Pawan file  
+  //! Read Pawan's file  
   int mbins[nmult-1] = {5,4,3,2,1};
   for(int i=1; i<nmult;i++){ //! 1 peripheral 5 central
     //cout<<i<<"\t"<<mbins[i-1]<<endl;
