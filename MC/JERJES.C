@@ -32,6 +32,7 @@ float binw   = 2;
 
 const int knj=4;
 const char *calgo[knj]= {"akPu2PF","akPu3PF","akPu4PF","akPu5PF"}; 
+//const char *calgo[knj]= {"ak2PF","ak3PF","ak4PF","ak5PF"}; 
 const char *algn[knj] = {"Anti-k_{T}, PF, R = 0.2","Anti-k_{T}, PF, R = 0.3","Anti-k_{T}, PF, R = 0.4","Anti-k_{T}, PF, R = 0.5"};
 
 
@@ -49,10 +50,10 @@ const int knpx=2000;
 float fitmin=0.00;
 float fitmax=5.00;
 
-double xmin=50.;
-double xmax=400.;
-double xfitmin=60;
-double xfitmax=360;
+double xmin=20.;
+double xmax=300.;
+double xfitmin=20;
+double xfitmax=300;
 int maxEntry=5;
 
 int GetPtBin(float /*pt*/);
@@ -81,7 +82,7 @@ int JERJES(const char *reta = "eta2")
 
   LoadStyle();
 
-  int rfit=0;
+  int rfit=8;
   int statop=1;
   int kRebin=1;
   //const char *reta = "eta3.0";
@@ -124,10 +125,11 @@ int JERJES(const char *reta = "eta2")
   }
  
   //! Input files 
-  TFile *fin_pbpb = new TFile(Form("output/test/%s/MC_pbpb_2013_merged.root",reta),"r");
-  //! 0   : pp w/o 
-  TFile *fin_pp   = new TFile(Form("output/test/%s/MC_pp_2013_merged.root",reta),"r");
-  
+  TFile *fin_pbpb = new TFile("input/pbpb/MC_2011_pbpb_merged.root","r");
+  //! 0   : pp  
+  //TFile *fin_pp   = new TFile("input/pp/MC_2013_pp_merged.root","r");
+  TFile *fin_pp   = new TFile("input/pp/MC_2013_v81_prod22_pp_merged.root","r");  
+
   cout<<"\t"<<endl
       <<"rfit : "<<rfit<<"\t fitmin : "<<fitmin<<"\t fitmax : "<<fitmax<<endl
       <<"Input file name  pbpb : "<<fin_pbpb->GetName()<<endl
@@ -136,13 +138,14 @@ int JERJES(const char *reta = "eta2")
 
 
   //! used for fit
-  double ptbins[] = {31,41,61,81,101,121,141,161,181,201,221,241,261,281,291,321};
+  double ptbins[]   = {20,30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,260,270,280,290,300};
   //double ptbins[] = {50,60,70,80,90,100,110,120,130,140,150,160,170,180,190,200,220,240,260,280,300,340,400,440,600};
   const int b1  = sizeof(ptbins)/sizeof(Double_t) - 1;
   const int nbins = b1;
   cout<<"# of pt bins : "<<nbins<<endl;
-  int maxr=3;
+  //return 0;
 
+  int maxr=3;
   int ipad=0;
 
   //! 0-5 PbPb Resposnse and 6th is pp response
@@ -162,7 +165,6 @@ int JERJES(const char *reta = "eta2")
 
   for(int nj=0;nj<knj;nj++){
     //cout<<"nj : "<<nj<<Form("\t %s",calgo[nj])<<endl;
-    
     for(int icen=0;icen<ncen;icen++){
 
       if(icen < ncen-1){
@@ -201,7 +203,7 @@ int JERJES(const char *reta = "eta2")
 	  int hbin = (int)(ptbins[ip+1] - minval)/binw +1;
 	  hratiocorrrefpt1D[nj][icen][ip]  = (TH1F*)hratiocorrrefpt [nj][icen]->ProjectionY(Form("hratiocorrrefpt1D%d_%d_%d",nj,icen,ip),lbin,hbin,"e");
 	  if(hratiocorrrefpt1D[nj][icen][ip]->GetEntries()<maxEntry)continue;
-	  hratiocorrrefpt1D[nj][icen][ip]->Rebin(2);
+	  hratiocorrrefpt1D[nj][icen][ip]->Rebin(5);
 	  FillMeanSigma(ip,hratiocorrrefpt1D[nj][icen][ip],
 			hArM[nj][icen],hRMS[nj][icen],
 			hMean[nj][icen],hSigma[nj][icen]);
@@ -209,14 +211,14 @@ int JERJES(const char *reta = "eta2")
 	  //! Raw / Gen
 	  hratiorawrefpt1D[nj][icen][ip]  = (TH1F*)hratiorawrefpt [nj][icen]->ProjectionY(Form("hratiorawrefpt1D%d_%d_%d",nj,icen,ip),lbin,hbin,"e");
 	  if(hratiorawrefpt1D[nj][icen][ip]->GetEntries()<maxEntry)continue;
-	  hratiorawrefpt1D[nj][icen][ip]->Rebin(2);
+	  hratiorawrefpt1D[nj][icen][ip]->Rebin(5);
 	  FillMeanSigma(ip,hratiorawrefpt1D[nj][icen][ip],
 			hArM_r[nj][icen],hRMS_r[nj][icen],
 			hMean_r[nj][icen],hSigma_r[nj][icen]);
 	}
-
       	//! PbPb ends
-      }else{
+
+      }else{//! pp
 
 	if(nj==1)cout<<"icen : "<<ccent[icen]<<endl;
 	//! pp /////////////////////////////
@@ -260,7 +262,7 @@ int JERJES(const char *reta = "eta2")
 	  int hbin = (int)(ptbins[ip+1] - minval)/binw +1;
 	  hratiocorrrefpt1D[nj][icen][ip]  = (TH1F*)hratiocorrrefpt [nj][icen]->ProjectionY(Form("hratiocorrrefpt1D_pp%d_%d_%d",nj,icen,ip),lbin,hbin,"e");
 	  if(hratiocorrrefpt1D[nj][icen][ip]->GetEntries()<maxEntry)continue;
-	  hratiocorrrefpt1D[nj][icen][ip]->Rebin(2);
+	  hratiocorrrefpt1D[nj][icen][ip]->Rebin(5);
 	  FillMeanSigma(ip,hratiocorrrefpt1D[nj][icen][ip],
 			hArM[nj][icen],hRMS[nj][icen],
 			hMean[nj][icen],hSigma[nj][icen]);
@@ -268,7 +270,7 @@ int JERJES(const char *reta = "eta2")
 	  //! Raw/Gen
 	  hratiorawrefpt1D[nj][icen][ip]  = (TH1F*)hratiorawrefpt [nj][icen]->ProjectionY(Form("hratiorawrefpt1D_pp%d_%d_%d",nj,icen,ip),lbin,hbin,"e");
 	  if(hratiorawrefpt1D[nj][icen][ip]->GetEntries()<maxEntry)continue;
-	  hratiorawrefpt1D[nj][icen][ip]->Rebin(2);
+	  hratiorawrefpt1D[nj][icen][ip]->Rebin(5);
 	  FillMeanSigma(ip,hratiorawrefpt1D[nj][icen][ip],
 			hArM_r[nj][icen],hRMS_r[nj][icen],
 			hMean_r[nj][icen],hSigma_r[nj][icen]);
@@ -280,27 +282,32 @@ int JERJES(const char *reta = "eta2")
   for(int nj=0;nj<knj;nj++){
     for(int ic=0;ic<ncen;ic++){
       
-      if(ic<ncen-1){
-	MakeHistMean(hArM  [nj][ic],1.058,0.955);
-	MakeHistRMS (hRMS  [nj][ic],0.43,0.001);
-	MakeHistMean(hMean [nj][ic],1.058,0.955);
-	MakeHistRMS (hSigma[nj][ic],0.43,0.001);
+      MakeHistMean(hArM  [nj][ic],1.09,0.84);
+      MakeHistRMS (hRMS  [nj][ic],0.43,0.001);
+      MakeHistMean(hMean [nj][ic],1.09,0.84);
+      MakeHistRMS (hSigma[nj][ic],0.43,0.001);
+
+      // if(ic<ncen-1){
+      // 	MakeHistMean(hArM  [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hRMS  [nj][ic],0.43,0.001);
+      // 	MakeHistMean(hMean [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hSigma[nj][ic],0.43,0.001);
 	
-	MakeHistMean(hArM_r  [nj][ic],1.058,0.955);
-	MakeHistRMS (hRMS_r  [nj][ic],0.43,0.001);
-	MakeHistMean(hMean_r [nj][ic],1.058,0.955);
-	MakeHistRMS (hSigma_r[nj][ic],0.43,0.001);
-      }else{
-	MakeHistMean(hArM  [nj][ic],1.058,0.955);
-	MakeHistRMS (hRMS  [nj][ic],0.43,0.001);
-	MakeHistMean(hMean [nj][ic],1.058,0.955);
-	MakeHistRMS (hSigma[nj][ic],0.43,0.001);
+      // 	MakeHistMean(hArM_r  [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hRMS_r  [nj][ic],0.43,0.001);
+      // 	MakeHistMean(hMean_r [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hSigma_r[nj][ic],0.43,0.001);
+      // }else{
+      // 	MakeHistMean(hArM  [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hRMS  [nj][ic],0.43,0.001);
+      // 	MakeHistMean(hMean [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hSigma[nj][ic],0.43,0.001);
 	
-	MakeHistMean(hArM_r  [nj][ic],1.058,0.955);
-	MakeHistRMS (hRMS_r  [nj][ic],0.43,0.001);
-	MakeHistMean(hMean_r [nj][ic],1.058,0.955);
-	MakeHistRMS (hSigma_r[nj][ic],0.43,0.001);
-      }
+      // 	MakeHistMean(hArM_r  [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hRMS_r  [nj][ic],0.43,0.001);
+      // 	MakeHistMean(hMean_r [nj][ic],1.058,0.955);
+      // 	MakeHistRMS (hSigma_r[nj][ic],0.43,0.001);
+      // }
     }      
   }
 
@@ -311,7 +318,7 @@ int JERJES(const char *reta = "eta2")
   maxr=2;
   for(int nj=0;nj<knj;nj++){
     //if(nj!=1)continue;
-    c3[nj] = new TCanvas(Form("c3_%d",nj),Form("%d JES JER",nj),97,118,1739,479);
+    c3[nj] = new TCanvas(Form("c3_%d",nj),Form("%s JES JER",calgo[nj]),97,118,1739,479);
     makeMultiPanelCanvas(c3[nj],maxc,maxr,0.0,0.0,0.22,0.22,0.02,0);
     //std::cout<<std::endl;
     ipad=0;
@@ -330,218 +337,331 @@ int JERJES(const char *reta = "eta2")
 
     for(int ic=ncen-2;ic>=0;ic--){
 
-      hRMS[nj][ic]->SetMarkerStyle(24);
-      hRMS[nj][ic]->SetMarkerColor(1);
-      hRMS[nj][ic]->SetLineColor(1);
-      hRMS[nj][ic]->SetMarkerSize(1.3);
+      if(iSigma){
+	hSigma[nj][ic]->SetMarkerStyle(24);
+	hSigma[nj][ic]->SetMarkerColor(1);
+	hSigma[nj][ic]->SetLineColor(1);
+	hSigma[nj][ic]->SetMarkerSize(1.3);
+	hSigma[nj][ncen-1]->SetMarkerStyle(20);
+	hSigma[nj][ncen-1]->SetMarkerColor(1);
+	hSigma[nj][ncen-1]->SetLineColor(1);
+	hSigma[nj][ncen-1]->SetMarkerSize(1.1);
+	
+	hMean[nj][ic]->SetMarkerStyle(24);
+	hMean[nj][ic]->SetMarkerColor(1);
+	hMean[nj][ic]->SetLineColor(1);
+	hMean[nj][ic]->SetMarkerSize(1.3);
+	hMean[nj][ncen-1]->SetMarkerStyle(20);
+	hMean[nj][ncen-1]->SetMarkerColor(1);
+	hMean[nj][ncen-1]->SetLineColor(1);
+	hMean[nj][ncen-1]->SetMarkerSize(1.1);
+	
+	hMean_r[nj][ic]->SetMarkerStyle(25);
+	hMean_r[nj][ic]->SetMarkerColor(1);
+	hMean_r[nj][ic]->SetLineColor(1);
+	hMean_r[nj][ic]->SetMarkerSize(1.3);
+	hMean_r[nj][ncen-1]->SetMarkerStyle(21);
+	hMean_r[nj][ncen-1]->SetMarkerColor(1);
+	hMean_r[nj][ncen-1]->SetLineColor(1);
+	hMean_r[nj][ncen-1]->SetMarkerSize(1.1);
 
-      hRMS[nj][ncen-1]->SetMarkerStyle(20);
-      hRMS[nj][ncen-1]->SetMarkerColor(1);
-      hRMS[nj][ncen-1]->SetLineColor(1);
-      hRMS[nj][ncen-1]->SetMarkerSize(1.1);
+	c3[nj]->cd(++ipad);
+	//gPad->SetLogx();
+	hSigma[nj][ic]->Draw("p");
+	hSigma[nj][ncen-1]->Draw("psame");
 
-      hArM[nj][ic]->SetMarkerStyle(24);
-      hArM[nj][ic]->SetMarkerColor(1);
-      hArM[nj][ic]->SetLineColor(1);
-      hArM[nj][ic]->SetMarkerSize(1.3);
-
-      hArM[nj][ncen-1]->SetMarkerStyle(20);
-      hArM[nj][ncen-1]->SetMarkerColor(1);
-      hArM[nj][ncen-1]->SetLineColor(1);
-      hArM[nj][ncen-1]->SetMarkerSize(1.1);
-
-      hArM_r[nj][ic]->SetMarkerStyle(25);
-      hArM_r[nj][ic]->SetMarkerColor(1);
-      hArM_r[nj][ic]->SetLineColor(1);
-      hArM_r[nj][ic]->SetMarkerSize(1.3);
-
-      hArM_r[nj][ncen-1]->SetMarkerStyle(21);
-      hArM_r[nj][ncen-1]->SetMarkerColor(1);
-      hArM_r[nj][ncen-1]->SetLineColor(1);
-      hArM_r[nj][ncen-1]->SetMarkerSize(1.1);
-      
-      c3[nj]->cd(++ipad);
-      //gPad->SetLogx();
-      hRMS[nj][ic]->Draw("p");
-      hRMS[nj][ncen-1]->Draw("psame");
-
-      if(ipad==6){
-	l3[nj]->AddEntry(hRMS[nj][ncen-1],"pp","p"); 
-	//l3[nj]->AddEntry(hRMS[nj][ncen-1],"pp w pu subtraction","p"); 
-	l3[nj]->AddEntry(hRMS[nj][0],"PbPb","p"); 
-	l3[nj]->Draw();
-      }
-      if(ipad==1){
-	TPaveText *pt3 = new TPaveText(0.4193406,0.7098186,0.7083456,0.8899312,"brNDC");
-	pt3->SetBorderSize(0);
-	pt3->SetFillColor(10);
-	pt3->SetTextFont(42);
-	TText *text3 = pt3->AddText("CMS Preliminary");
-	text3->SetTextSize(0.09);
-	TText *text4 = pt3->AddText("PYTHIA Z2 + HYDJET 1.8");
-	text4->SetTextSize(0.09);
-	pt3->Draw();
-      }
-      
-      TPaveText *pt = new TPaveText(0.2663379,0.02939336,0.4986753,0.1544715,"brNDC");
-      pt->SetBorderSize(0);
-      pt->SetFillColor(10);
-      pt->SetTextFont(42);
-      TText *text = pt->AddText(Form("%s",ccent[ic]));
-      text->SetTextSize(0.09);
-      pt->Draw();
-
-      if(ipad==2){
-	TPaveText *pt1 = new TPaveText(0.1346399,0.6797999,0.9011061,0.8749218,"brNDC");
-	pt1->SetBorderSize(0);
-	pt1->SetFillColor(10);
-	pt1->SetTextFont(42);
-	//TText *text1 = pt1->AddText(Form("%s",calgo[nj]));
-	TText *text1 = pt1->AddText(Form("%s",algn[nj]));
-	text1->SetTextSize(0.09);
-	TText *text2 = pt1->AddText(Form("|#eta| < %0.0f",ketacut));
-	text2->SetTextSize(0.09);
-	pt1->Draw();
-      }
-
-
-      c3[nj]->cd(ipad+(ncen-1));
-
-      //cout<<"pad : "<<(ipad+(ncen-1))<<"\t "<<calgo[nj]<<"\t centrality : "<<ccent[ic]<<"\t name : "<<hArM[nj][ic]->GetName()<<endl;
-      //gPad->SetLogx();
-
-      hArM[nj][ic]->Draw("p");
-      hArM_r[nj][ic]->Draw("psame");      
-      hArM[nj][ncen-1]->Draw("psame");
-      hArM_r[nj][ncen-1]->Draw("psame");
+	if(ipad==6){
+	  //l3[nj]->AddEntry(hSigma[nj][ncen-1],"pp","p"); 
+	  l3[nj]->AddEntry(hSigma[nj][ncen-1],"pp v81 prod 22","p"); 
+	  //l3[nj]->AddEntry(hSigma[nj][ncen-1],"pp w pu subtraction","p"); 
+	  l3[nj]->AddEntry(hSigma[nj][0],"PbPb","p"); 
+	  l3[nj]->Draw();
+	}
+	if(ipad==1){
+	  TPaveText *pt3 = new TPaveText(0.4193406,0.7098186,0.7083456,0.8899312,"brNDC");
+	  pt3->SetBorderSize(0);
+	  pt3->SetFillColor(10);
+	  pt3->SetTextFont(42);
+	  TText *text3 = pt3->AddText("CMS Preliminary");
+	  text3->SetTextSize(0.09);
+	  TText *text4 = pt3->AddText("PYTHIA Z2 + HYDJET 1.8");
+	  text4->SetTextSize(0.09);
+	  pt3->Draw();
+	}
+	
+	TPaveText *pt = new TPaveText(0.2663379,0.02939336,0.4986753,0.1544715,"brNDC");
+	pt->SetBorderSize(0);
+	pt->SetFillColor(10);
+	pt->SetTextFont(42);
+	TText *text = pt->AddText(Form("%s",ccent[ic]));
+	text->SetTextSize(0.09);
+	pt->Draw();
+	
+	if(ipad==2){
+	  TPaveText *pt1 = new TPaveText(0.1346399,0.6797999,0.9011061,0.8749218,"brNDC");
+	  pt1->SetBorderSize(0);
+	  pt1->SetFillColor(10);
+	  pt1->SetTextFont(42);
+	  //TText *text1 = pt1->AddText(Form("%s",calgo[nj]));
+	  TText *text1 = pt1->AddText(Form("%s",algn[nj]));
+	  text1->SetTextSize(0.09);
+	  TText *text2 = pt1->AddText(Form("|#eta| < %0.0f",ketacut));
+	  text2->SetTextSize(0.09);
+	  pt1->Draw();
+	}
+	
+	c3[nj]->cd(ipad+(ncen-1));
+	
+	//cout<<"pad : "<<(ipad+(ncen-1))<<"\t "<<calgo[nj]<<"\t centrality : "<<ccent[ic]<<"\t name : "<<hArM[nj][ic]->GetName()<<endl;
+	//gPad->SetLogx();
+	
+	hMean[nj][ic]->Draw("p");
+	hMean_r[nj][ic]->Draw("psame");      
+	hMean[nj][ncen-1]->Draw("psame");
+	hMean_r[nj][ncen-1]->Draw("psame");
 
 
-      if(ipad==6){
-	TLatex *tex1 = new TLatex(175,0.68,"Raw");
-	tex1->SetTextFont(42);
-	tex1->SetTextSize(0.08);
-	tex1->SetLineWidth(2);
-	tex1->Draw();
-	TLatex *tex2 = new TLatex(174,0.63,"Corrected");
-	tex2->SetTextFont(42);
-	tex2->SetTextSize(0.08);
-	tex2->SetLineWidth(2);
-	tex2->Draw();
-	TMarker *marker1 = new TMarker(162,0.65,25);
-	marker1->SetMarkerStyle(25);
-	marker1->Draw();
-	TMarker *marker2 = new TMarker(139,0.65,21);
-	marker2->SetMarkerStyle(21);
-	marker2->Draw();
-	TMarker *marker3 = new TMarker(162,0.70,24);
-	marker3->SetMarkerStyle(24);
-	marker3->Draw();
-	TMarker *marker4 = new TMarker(139,0.70,20);
+	if(ipad==6){
+	  TLatex *tex1 = new TLatex(175,0.68,"Raw");
+	  tex1->SetTextFont(42);
+	  tex1->SetTextSize(0.08);
+	  tex1->SetLineWidth(2);
+	  tex1->Draw();
+	  TLatex *tex2 = new TLatex(174,0.63,"Corrected");
+	  tex2->SetTextFont(42);
+	  tex2->SetTextSize(0.08);
+	  tex2->SetLineWidth(2);
+	  tex2->Draw();
+	  TMarker *marker1 = new TMarker(162,0.65,25);
+	  marker1->SetMarkerStyle(25);
+	  marker1->Draw();
+	  TMarker *marker2 = new TMarker(139,0.65,21);
+	  marker2->SetMarkerStyle(21);
+	  marker2->Draw();
+	  TMarker *marker3 = new TMarker(162,0.70,24);
+	  marker3->SetMarkerStyle(24);
+	  marker3->Draw();
+	  TMarker *marker4 = new TMarker(139,0.70,20);
 	marker4->SetMarkerStyle(20);
 	marker4->Draw();
-      }
-      TLine *line = new TLine(xmin,1,xmax,1);
-      line->SetLineWidth(1);
-      line->SetLineStyle(2);
-      line->Draw();
-    }//! icen
-    /*
-    if(iSave){
-      c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.png",calgo[nj]));
-      c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.pdf",calgo[nj]));
-      c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.C",calgo[nj]));
-      c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.eps",calgo[nj]));
-    }
-    */
-  }//! algo
-  return 0;
+	}
+	TLine *line = new TLine(xmin,1,xmax,1);
+	line->SetLineWidth(1);
+	line->SetLineStyle(2);
+	line->Draw();
 
-  /*
+      }else{
+
+	hRMS[nj][ic]->SetMarkerStyle(24);
+	hRMS[nj][ic]->SetMarkerColor(1);
+	hRMS[nj][ic]->SetLineColor(1);
+	hRMS[nj][ic]->SetMarkerSize(1.3);
+	
+	hRMS[nj][ncen-1]->SetMarkerStyle(20);
+	hRMS[nj][ncen-1]->SetMarkerColor(1);
+	hRMS[nj][ncen-1]->SetLineColor(1);
+	hRMS[nj][ncen-1]->SetMarkerSize(1.1);
+	
+	hArM[nj][ic]->SetMarkerStyle(24);
+	hArM[nj][ic]->SetMarkerColor(1);
+	hArM[nj][ic]->SetLineColor(1);
+	hArM[nj][ic]->SetMarkerSize(1.3);
+	
+	hArM[nj][ncen-1]->SetMarkerStyle(20);
+	hArM[nj][ncen-1]->SetMarkerColor(1);
+	hArM[nj][ncen-1]->SetLineColor(1);
+	hArM[nj][ncen-1]->SetMarkerSize(1.1);
+	
+	hArM_r[nj][ic]->SetMarkerStyle(25);
+	hArM_r[nj][ic]->SetMarkerColor(1);
+	hArM_r[nj][ic]->SetLineColor(1);
+	hArM_r[nj][ic]->SetMarkerSize(1.3);
+	
+	hArM_r[nj][ncen-1]->SetMarkerStyle(21);
+	hArM_r[nj][ncen-1]->SetMarkerColor(1);
+	hArM_r[nj][ncen-1]->SetLineColor(1);
+	hArM_r[nj][ncen-1]->SetMarkerSize(1.1);
+	
+	c3[nj]->cd(++ipad);
+	//gPad->SetLogx();
+	hRMS[nj][ic]->Draw("p");
+	hRMS[nj][ncen-1]->Draw("psame");
+	
+	if(ipad==6){
+	  l3[nj]->AddEntry(hRMS[nj][ncen-1],"pp v81 prod22 ak3PF","p"); 
+	  //l3[nj]->AddEntry(hRMS[nj][ncen-1],"pp w pu subtraction","p"); 
+	  l3[nj]->AddEntry(hRMS[nj][0],"PbPb akPu3PF","p"); 
+	  l3[nj]->Draw();
+	}
+	if(ipad==1){
+	  TPaveText *pt3 = new TPaveText(0.4193406,0.7098186,0.7083456,0.8899312,"brNDC");
+	  pt3->SetBorderSize(0);
+	  pt3->SetFillColor(10);
+	  pt3->SetTextFont(42);
+	  TText *text3 = pt3->AddText("CMS Preliminary");
+	  text3->SetTextSize(0.09);
+	  TText *text4 = pt3->AddText("PYTHIA Z2 + HYDJET 1.8");
+	  text4->SetTextSize(0.09);
+	  pt3->Draw();
+	}
+	
+	TPaveText *pt = new TPaveText(0.2663379,0.02939336,0.4986753,0.1544715,"brNDC");
+	pt->SetBorderSize(0);
+	pt->SetFillColor(10);
+	pt->SetTextFont(42);
+	TText *text = pt->AddText(Form("%s",ccent[ic]));
+	text->SetTextSize(0.09);
+	pt->Draw();
+	
+	if(ipad==2){
+	  TPaveText *pt1 = new TPaveText(0.1346399,0.6797999,0.9011061,0.8749218,"brNDC");
+	  pt1->SetBorderSize(0);
+	  pt1->SetFillColor(10);
+	  pt1->SetTextFont(42);
+	  //TText *text1 = pt1->AddText(Form("%s",calgo[nj]));
+	  TText *text1 = pt1->AddText(Form("%s",algn[nj]));
+	  text1->SetTextSize(0.09);
+	  TText *text2 = pt1->AddText(Form("|#eta| < %0.0f",ketacut));
+	  text2->SetTextSize(0.09);
+	  pt1->Draw();
+	}
+	
+
+	c3[nj]->cd(ipad+(ncen-1));
+	
+	//cout<<"pad : "<<(ipad+(ncen-1))<<"\t "<<calgo[nj]<<"\t centrality : "<<ccent[ic]<<"\t name : "<<hArM[nj][ic]->GetName()<<endl;
+	//gPad->SetLogx();
+	
+	hArM[nj][ic]->Draw("p");
+	//hArM_r[nj][ic]->Draw("psame");      
+	hArM[nj][ncen-1]->Draw("psame");
+	//hArM_r[nj][ncen-1]->Draw("psame");
+	
+	
+	if(ipad==6){
+	  TLatex *tex1 = new TLatex(175,0.68,"Raw");
+	  tex1->SetTextFont(42);
+	  tex1->SetTextSize(0.08);
+	  tex1->SetLineWidth(2);
+	  tex1->Draw();
+	  TLatex *tex2 = new TLatex(174,0.63,"Corrected");
+	  tex2->SetTextFont(42);
+	  tex2->SetTextSize(0.08);
+	  tex2->SetLineWidth(2);
+	  tex2->Draw();
+	  TMarker *marker1 = new TMarker(162,0.65,25);
+	  marker1->SetMarkerStyle(25);
+	  marker1->Draw();
+	  TMarker *marker2 = new TMarker(139,0.65,21);
+	  marker2->SetMarkerStyle(21);
+	  marker2->Draw();
+	  TMarker *marker3 = new TMarker(162,0.70,24);
+	  marker3->SetMarkerStyle(24);
+	  marker3->Draw();
+	  TMarker *marker4 = new TMarker(139,0.70,20);
+	  marker4->SetMarkerStyle(20);
+	  marker4->Draw();
+	}
+	TLine *line = new TLine(xmin,1,xmax,1);
+	line->SetLineWidth(1);
+	line->SetLineStyle(2);
+	line->Draw();
+      }//! else
+    }//! icen
+    if(nj!=1)c3[nj]->Close();
+   /*
+   if(iSave){
+     c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.png",calgo[nj]));
+     c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.pdf",calgo[nj]));
+     c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.C",calgo[nj]));
+     c3[nj]->SaveAs(Form("AN/JERJES/JERJES_%s.eps",calgo[nj]));
+   }
+   */
+  }//! algo
+  //return 0;
+
+
   ipad=0;
   TCanvas *c99[knj][ncen];
   maxr=3;
   for(int nj=1;nj<2;nj++){
-    for(int ic=0;ic<ncen;ic++){
+    for(int ic=0;ic<ncen-1;ic++){
       c99[nj][ic] = new TCanvas(Form("c99_%d_%d",nj,ic),Form("%s Fitting plots %s",calgo[nj],ccent[ic]),100,102,1399,942);
-      c99[nj][ic]->Divide(6,maxr,0,0);
+      //c99[nj][ic]->Divide(6,maxr,0,0);
+      c99[nj][ic]->Divide(7,4,0,0);
       ipad=0;
       
       for(int ip=0;ip<nbins;ip++){      
 	c99[nj][ic]->cd(++ipad);
-	if(ipad%6==0)gPad->SetRightMargin(0.02);
+	if(ipad%7==0)gPad->SetRightMargin(0.02);
+	if(ipad==1 || ipad==8 || ipad==15 || ipad==22)gPad->SetLeftMargin(0.15);
 	gPad->SetBottomMargin(0.15);
 	gPad->SetLogy();
+
+	hratiocorrrefpt1D[nj][ic][ip]->SetMaximum(25.634);
+	hratiocorrrefpt1D[nj][ic][ip]->SetMinimum(1e-09);
+	hratiocorrrefpt1D[nj][ic][ip]->SetTitle(0);
+	hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitle("<reco jet p_{T} / gen jet p_{T}>");
+	hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleFont(42);
+	hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelFont(42);
+	hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelSize(0.08);
+	hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleSize(0.07);
 	
+	hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitle("");
+	hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitleFont(42);
+	hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelFont(42);
+	hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelSize(0.08);
 
-	if(ic<ncen-1){
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMaximum(25.634);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMinimum(1e-09);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetTitle(0);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitle("<reco jet p_{T} / gen jet p_{T}>");
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelSize(0.08);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleSize(0.07);
-	
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitle("");
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitleFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelSize(0.08);
+	hratiocorrrefpt1D[nj][ic][ip]->SetMarkerStyle(24);
+	hratiocorrrefpt1D[nj][ic][ip]->SetMarkerColor(1);
+	hratiocorrrefpt1D[nj][ic][ip]->SetLineColor(1);
+	hratiocorrrefpt1D[nj][ic][ip]->SetMarkerSize(1.1);
+	hratiocorrrefpt1D[nj][ic][ip]->Draw("p");  
 
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMarkerStyle(24);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMarkerColor(1);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetLineColor(1);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMarkerSize(0.9);
-	  hratiocorrrefpt1D[nj][ic][ip]->Draw("p");  
 
-	  hratiorawrefpt1D[nj][ic][ip]->SetMarkerStyle(24);
-	  hratiorawrefpt1D[nj][ic][ip]->SetMarkerColor(4);
-	  hratiorawrefpt1D[nj][ic][ip]->SetLineColor(4);
-	  hratiorawrefpt1D[nj][ic][ip]->SetMarkerSize(0.9);
-	  //hratiorawrefpt1D[nj][ic][ip]->Draw("psame");  
-	
-	  c99[nj][ic]->Update();
-	  TPaveStats *ps = (TPaveStats*)  hratiocorrrefpt1D[nj][ic][ip]->GetListOfFunctions()->FindObject("stats");
-	  ps->SetX1NDC(0.50);
-	  ps->SetY1NDC(0.41);       
-	  ps->SetX2NDC(0.95);
-	  ps->SetY2NDC(0.79);
-	  ps->SetTextFont(42);
-	  ps->Draw();
+	// c99[nj][ic]->Update();
+	// TPaveStats *ps = (TPaveStats*)  hratiocorrrefpt1D[nj][ic][ip]->GetListOfFunctions()->FindObject("stats");
+	// ps->SetX1NDC(0.50);
+	// ps->SetY1NDC(0.41);       
+	// ps->SetX2NDC(0.95);
+	// ps->SetY2NDC(0.79);
+	// ps->SetTextFont(42);
+	// ps->Draw();
 
-	}else{
+	//pp
+	if(ic==0){
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetMaximum(25.634);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetMinimum(1e-09);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetTitle(0);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetXaxis()->SetTitle("<reco jet p_{T} / gen jet p_{T}>");
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetXaxis()->SetTitleFont(42);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetXaxis()->SetLabelFont(42);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetXaxis()->SetLabelSize(0.08);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetXaxis()->SetTitleSize(0.07);
 	  
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMaximum(25.634);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMinimum(1e-09);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetTitle(0);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitle("<reco jet p_{T} / gen jet p_{T}>");
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelSize(0.08);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleSize(0.07);
-	
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitle("");
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitleFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelFont(42);
-	  hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelSize(0.08);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetYaxis()->SetTitle("");
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetYaxis()->SetTitleFont(42);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetYaxis()->SetLabelFont(42);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->GetYaxis()->SetLabelSize(0.08);
+	  
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetMarkerStyle(24);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetMarkerColor(2);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetLineColor(2);
+	  hratiocorrrefpt1D[nj][ncen-1][ip]->SetMarkerSize(0.8);
 
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMarkerStyle(24);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMarkerColor(1);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetLineColor(1);
-	  hratiocorrrefpt1D[nj][ic][ip]->SetMarkerSize(0.9);
-	  hratiocorrrefpt1D[nj][ic][ip]->Draw("p");  
-	
-	  c99[nj][ic]->Update();
-	  TPaveStats *ps = (TPaveStats*)  hratiocorrrefpt1D[nj][ic][ip]->GetListOfFunctions()->FindObject("stats");
-	  ps->SetX1NDC(0.50);
-	  ps->SetY1NDC(0.41);       
-	  ps->SetX2NDC(0.95);
-	  ps->SetY2NDC(0.79);
-	  ps->SetTextFont(42);
-	  ps->Draw();
-	}	
+	}	  
 
-	
+	// TPaveStats *ps = (TPaveStats*)  hratiocorrrefpt1D[nj][ic][ip]->GetListOfFunctions()->FindObject("stats");
+	// ps->SetX1NDC(0.50);
+	// ps->SetY1NDC(0.41);       
+	// ps->SetX2NDC(0.95);
+	// ps->SetY2NDC(0.79);
+	// ps->SetTextFont(42);
+	// ps->Draw();
+
+	hratiocorrrefpt1D[nj][ncen-1][ip]->Draw("psame");  
+	c99[nj][ic]->Update();
+
 	TPaveText *pt   = new TPaveText(0.4524683,0.8914759,0.7023389,0.9597512,"brNDC");
 	pt->SetBorderSize(0);
 	pt->SetFillColor(10);
@@ -549,31 +669,82 @@ int JERJES(const char *reta = "eta2")
 	TText *text = pt->AddText(Form("%0.0f < p_{T} (GeV/c) < %0.0f",ptbins[ip], ptbins[ip+1]));
 	text->SetTextSize(0.07);
 	pt->Draw();
+
+
 	
-	if(ipad==1){
-	  TPaveText *pt1 = new TPaveText(0.6044166,0.2194909,0.8644171,0.3668644,"brNDC");
-	  pt1->SetBorderSize(0);
-	  pt1->SetFillColor(10);
-	  pt1->SetTextFont(42);
-	  TText *text1 = 0;
-	  if(ic==ncen-1)text1 = pt1->AddText("ak3PF");
-	  else text1 = pt1->AddText(calgo[nj]);
-	  text1->SetTextSize(0.09);	
-	  pt1->Draw();
+	// if(ic<ncen-1){
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetMaximum(25.634);
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetMinimum(1e-09);
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetTitle(0);
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitle("<reco jet p_{T} / gen jet p_{T}>");
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleFont(42);
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelFont(42);
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetLabelSize(0.08);
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetXaxis()->SetTitleSize(0.07);
+	
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitle("");
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetTitleFont(42);
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelFont(42);
+	//   hratiocorrrefpt1D[nj][ic][ip]->GetYaxis()->SetLabelSize(0.08);
+
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetMarkerStyle(24);
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetMarkerColor(1);
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetLineColor(1);
+	//   hratiocorrrefpt1D[nj][ic][ip]->SetMarkerSize(0.9);
+	//   hratiocorrrefpt1D[nj][ic][ip]->Draw("p");  
+
+	//   hratiorawrefpt1D[nj][ic][ip]->SetMarkerStyle(24);
+	//   hratiorawrefpt1D[nj][ic][ip]->SetMarkerColor(4);
+	//   hratiorawrefpt1D[nj][ic][ip]->SetLineColor(4);
+	//   hratiorawrefpt1D[nj][ic][ip]->SetMarkerSize(0.9);
+	//   //hratiorawrefpt1D[nj][ic][ip]->Draw("psame");  
+	
+	//   c99[nj][ic]->Update();
+	//   TPaveStats *ps = (TPaveStats*)  hratiocorrrefpt1D[nj][ic][ip]->GetListOfFunctions()->FindObject("stats");
+	//   ps->SetX1NDC(0.50);
+	//   ps->SetY1NDC(0.41);       
+	//   ps->SetX2NDC(0.95);
+	//   ps->SetY2NDC(0.79);
+	//   ps->SetTextFont(42);
+	//   ps->Draw();
+
+	// }else{
 	  
-	  TPaveText *pt2 = new TPaveText(0.60104,0.8160025,0.8475339,0.9142515,"brNDC");
-	  pt2->SetBorderSize(0);
-	  pt2->SetFillColor(10);
-	  pt->SetTextFont(42);
-	  TText *text2 = pt2->AddText(Form("%s",ccent[ic]));
-	  text2->SetTextSize(0.08);
-	  pt2->Draw();
-	}
+	
+
+	
+	// TPaveText *pt   = new TPaveText(0.4524683,0.8914759,0.7023389,0.9597512,"brNDC");
+	// pt->SetBorderSize(0);
+	// pt->SetFillColor(10);
+	// pt->SetTextFont(42);
+	// TText *text = pt->AddText(Form("%0.0f < p_{T} (GeV/c) < %0.0f",ptbins[ip], ptbins[ip+1]));
+	// text->SetTextSize(0.07);
+	// pt->Draw();
+	
+	// if(ipad==1){
+	//   TPaveText *pt1 = new TPaveText(0.6044166,0.2194909,0.8644171,0.3668644,"brNDC");
+	//   pt1->SetBorderSize(0);
+	//   pt1->SetFillColor(10);
+	//   pt1->SetTextFont(42);
+	//   TText *text1 = 0;
+	//   if(ic==ncen-1)text1 = pt1->AddText("ak3PF");
+	//   else text1 = pt1->AddText(calgo[nj]);
+	//   text1->SetTextSize(0.09);	
+	//   pt1->Draw();
+	  
+	//   TPaveText *pt2 = new TPaveText(0.60104,0.8160025,0.8475339,0.9142515,"brNDC");
+	//   pt2->SetBorderSize(0);
+	//   pt2->SetFillColor(10);
+	//   pt->SetTextFont(42);
+	//   TText *text2 = pt2->AddText(Form("%s",ccent[ic]));
+	//   text2->SetTextSize(0.08);
+	//   pt2->Draw();
+	// }
       }
     }
   }
   return 0;
-  */  
+
 
   /*
   //! Difference between Gaussian fits mean/sigma and ArM/RMS
@@ -820,7 +991,7 @@ void FillMeanSigma(int ip,TH1 *h1F,TH1 *hArM,TH1 *hRMS,TH1 *hMean,TH1 *hSigma)
       hMean ->SetBinContent(ip+1,f2->GetParameter(1));
       hSigma->SetBinContent(ip+1,f2->GetParameter(2));
       
-      if(strcmp(fopt,"MLRQ+")==0){
+      if(strcmp(fopt,"MLLRQ0+")==0){
 	hMean ->SetBinError  (ip+1,h1F->GetMeanError());
 	hSigma->SetBinError  (ip+1,h1F->GetRMSError());
       }else{
@@ -842,7 +1013,7 @@ void FillMeanSigma(int ip,TH1 *h1F,TH1 *hArM,TH1 *hRMS,TH1 *hMean,TH1 *hSigma)
       hMean ->SetBinContent(ip+1,f1->GetParameter(2));
       hSigma->SetBinContent(ip+1,f1->GetParameter(1));
       
-      if(strcmp(fopt,"MLRQ+")==0){
+      if(strcmp(fopt,"MLLRQ0+")==0){
 	hMean ->SetBinError  (ip+1,h1F->GetMeanError());
 	hSigma->SetBinError  (ip+1,h1F->GetRMSError());
       }else{
@@ -855,6 +1026,7 @@ void FillMeanSigma(int ip,TH1 *h1F,TH1 *hArM,TH1 *hRMS,TH1 *hMean,TH1 *hSigma)
     hRMS  ->SetBinContent(ip+1,h1F->GetRMS());
     hRMS  ->SetBinError  (ip+1,h1F->GetRMSError());
   }
+  delete f1;
 }
 void MakeHistRMS(TH1 *h1,float ymax,float ymin)
 {
